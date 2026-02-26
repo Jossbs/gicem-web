@@ -1,0 +1,56 @@
+name: linter
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+      - master
+      - workos
+  pull_request:
+    branches:
+      - develop
+      - main
+      - master
+      - workos
+
+permissions:
+  contents: write
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install Dependencies
+        run: |
+          composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+          pnpm install
+
+      - name: Generate Wayfinder Types
+        run: |
+          cp .env.example .env
+          mkdir -p storage/framework/{cache/data,views,sessions,testing}
+          chmod -R 775 storage
+          php artisan key:generate
+          pnpm run build
+
+      - name: Run Quality Checks
+        run: composer run quality
+
+      # - name: Commit Changes
+      #   uses: stefanzweifel/git-auto-commit-action@v7
+      #   with:
+      #     commit_message: fix code style
+      #     commit_options: '--no-verify'
