@@ -34,3 +34,5 @@ CLAUDE.md
 /storage/app/
 /storage/framework/
 /storage/wayfinder-cache/
+/.agents/
+/skills-lock.json
