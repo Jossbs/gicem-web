@@ -177,25 +177,28 @@ function GuardiansIndex({ guardians, filters, kinshipOptions }: Props) {
                     <Table>
                         <TableHeader>
                             <TableRow className="bg-primary hover:bg-primary dark:bg-[oklch(0.28_0.06_9.01)] dark:hover:bg-[oklch(0.28_0.06_9.01)]">
-                                <TableHead className="text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
-                                    NOMBRE DEL TUTOR
+                                <TableHead className="text-center text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
+                                    NOMBRE(S)
                                 </TableHead>
-                                <TableHead className="text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
+                                <TableHead className="text-center text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
+                                    APELLIDOS
+                                </TableHead>
+                                <TableHead className="text-center text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
                                     PARENTESCO
                                 </TableHead>
-                                <TableHead className="text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
+                                <TableHead className="text-center text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
                                     ALUMNO ASOCIADO
                                 </TableHead>
-                                <TableHead className="text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
-                                    TELÉFONO
+                                <TableHead className="text-center text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
+                                    TELEFONO
                                 </TableHead>
-                                <TableHead className="text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
+                                <TableHead className="text-center text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
                                     CORREO
                                 </TableHead>
-                                <TableHead className="text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
+                                <TableHead className="text-center text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
                                     CUENTA
                                 </TableHead>
-                                <TableHead className="text-right text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
+                                <TableHead className="text-center text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
                                     ACCIONES
                                 </TableHead>
                             </TableRow>
@@ -203,7 +206,7 @@ function GuardiansIndex({ guardians, filters, kinshipOptions }: Props) {
                         <TableBody>
                             {guardians.data.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={7} className="py-16 text-center">
+                                    <TableCell colSpan={8} className="py-16 text-center">
                                         <div className="flex flex-col items-center gap-3">
                                             <div className="flex size-12 items-center justify-center rounded-full bg-muted">
                                                 <FolderOpen className="size-6 text-muted-foreground" />
@@ -224,36 +227,35 @@ function GuardiansIndex({ guardians, filters, kinshipOptions }: Props) {
                             ) : (
                                 guardians.data.map((g) => (
                                     <TableRow key={g.id}>
-                                        <TableCell className="font-medium">
-                                            <span className="text-foreground">
-                                                {g.tutor_apellido_paterno} {g.tutor_apellido_materno}
-                                            </span>
-                                            <span className="text-muted-foreground">, </span>
-                                            <span className="text-foreground">{g.tutor_nombre}</span>
+                                        <TableCell className="text-center font-medium">
+                                            {g.tutor_nombre}
                                         </TableCell>
-                                        <TableCell>
+                                        <TableCell className="text-center">
+                                            {g.tutor_apellido_paterno} {g.tutor_apellido_materno}
+                                        </TableCell>
+                                        <TableCell className="text-center">
                                             {kinshipLabels[g.tutor_parentesco] ?? g.tutor_parentesco}
                                         </TableCell>
-                                        <TableCell>
+                                        <TableCell className="text-center">
                                             <span className="text-sm text-muted-foreground">
-                                                {g.apellido_paterno} {g.apellido_materno}, {g.nombre_completo}
+                                                {g.nombre_completo} {g.apellido_paterno} {g.apellido_materno}
                                             </span>
                                         </TableCell>
-                                        <TableCell className="whitespace-nowrap">
+                                        <TableCell className="text-center whitespace-nowrap">
                                             {g.tel_emergencia_1}
                                         </TableCell>
-                                        <TableCell className="text-muted-foreground">
+                                        <TableCell className="text-center text-muted-foreground">
                                             {g.correo_tutor}
                                         </TableCell>
-                                        <TableCell>
+                                        <TableCell className="text-center">
                                             {g.tutor_user_id ? (
                                                 <Badge className="bg-affirmative text-white">Activa</Badge>
                                             ) : (
                                                 <Badge variant="secondary">Sin cuenta</Badge>
                                             )}
                                         </TableCell>
-                                        <TableCell className="text-right">
-                                            <div className="flex items-center justify-end gap-1">
+                                        <TableCell className="text-center">
+                                            <div className="flex items-center justify-center gap-1">
                                                 {g.tutor_user_id && (
                                                     <Button
                                                         variant="ghost"

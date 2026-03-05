@@ -140,8 +140,10 @@ function getInitials(student: Student): string {
 }
 
 function StudentsShow({ student }: { student: Student }) {
-    const fullName = [student.apellido_paterno, student.apellido_materno].filter(Boolean).join(' ') +
-        (student.nombre_completo ? `, ${student.nombre_completo}` : 'Sin nombre');
+    const fullName = (student.nombre_completo ?? 'Sin nombre') +
+        ([student.apellido_paterno, student.apellido_materno].filter(Boolean).length > 0
+            ? ' ' + [student.apellido_paterno, student.apellido_materno].filter(Boolean).join(' ')
+            : '');
 
     const documents = [
         { label: 'Acta de nacimiento', url: student.doc_acta_nacimiento_url },
@@ -211,19 +213,27 @@ function StudentsShow({ student }: { student: Student }) {
                 <div className="space-y-4 lg:col-span-9">
                     {/* Header card */}
                     <Card className="overflow-hidden shadow-sm">
-                        <div className="bg-primary px-6 py-5">
-                            <div className="flex items-center gap-4">
-                                {student.fotografia_display_url ? (
-                                    <img src={student.fotografia_display_url} alt="" className="size-16 rounded-full border-2 border-primary-foreground/20 object-cover" />
-                                ) : (
-                                    <div className="flex size-16 shrink-0 items-center justify-center rounded-full border-2 border-primary-foreground/20 bg-primary-foreground/10 text-lg font-bold text-primary-foreground">
-                                        {getInitials(student)}
-                                    </div>
-                                )}
-                                <div className="min-w-0 flex-1">
+                        <div className="bg-primary px-6 py-6">
+                            <div className="flex gap-5">
+                                {/* Foto grande */}
+                                <div className="shrink-0">
+                                    {student.fotografia_display_url ? (
+                                        <img
+                                            src={student.fotografia_display_url}
+                                            alt=""
+                                            className="size-36 rounded-lg border-2 border-primary-foreground/15 object-cover shadow-lg"
+                                        />
+                                    ) : (
+                                        <div className="flex size-36 items-center justify-center rounded-lg border-2 border-primary-foreground/15 bg-primary-foreground/10 text-3xl font-bold text-primary-foreground shadow-lg">
+                                            {getInitials(student)}
+                                        </div>
+                                    )}
+                                </div>
+                                {/* Info */}
+                                <div className="flex min-w-0 flex-1 flex-col justify-center">
                                     <p className="text-[10px] font-bold tracking-[0.15em] text-primary-foreground/60">EXPEDIENTE DE ALUMNO — GICEM</p>
-                                    <h1 className="mt-0.5 text-xl font-bold text-primary-foreground">{fullName}</h1>
-                                    <div className="mt-2 flex flex-wrap gap-2">
+                                    <h1 className="mt-1 text-2xl font-bold leading-tight text-primary-foreground">{fullName}</h1>
+                                    <div className="mt-3 flex flex-wrap gap-2">
                                         {student.curp && (
                                             <Badge variant="outline" className="border-primary-foreground/20 text-[10px] font-semibold tracking-wider text-primary-foreground/80">
                                                 CURP: {student.curp}

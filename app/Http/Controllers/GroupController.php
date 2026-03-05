@@ -21,7 +21,7 @@ class GroupController extends Controller
     public function index(Request $request): Response
     {
         $groups = Group::query()
-            ->with('docente:id,name')
+            ->with('docente:id,name,apellido_paterno,apellido_materno')
             ->when($request->input('search'), function ($query, $search): void {
                 $query->where(function ($q) use ($search): void {
                     $q->where('nombre_grupo', 'ilike', "%{$search}%")
@@ -138,10 +138,10 @@ class GroupController extends Controller
     {
         return User::query()
             ->orderBy('name')
-            ->get(['id', 'name'])
+            ->get(['id', 'name', 'apellido_paterno', 'apellido_materno'])
             ->map(fn (User $user) => [
                 'value' => (string) $user->id,
-                'label' => $user->name,
+                'label' => trim("{$user->name} {$user->apellido_paterno} {$user->apellido_materno}"),
             ])
             ->values()
             ->all();

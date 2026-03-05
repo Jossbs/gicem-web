@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import AuthenticatedLayout from '@/layouts/authenticated-layout';
 import { Head, Link, router } from '@inertiajs/react';
-import { ArrowLeft, ChevronDown, ChevronUp, Mail, Pencil, Trash2 } from 'lucide-react';
+import { ArrowLeft, Briefcase, ChevronDown, ChevronUp, Mail, Pencil, Trash2, User } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
 
 interface StaffMember {
@@ -25,6 +25,7 @@ interface StaffMember {
     email: string;
     rol_sistema: string;
     fotografia_url: string | null;
+    fotografia_display_url: string | null;
     grupo_asignado: {
         id: number;
         nombre_grupo: string;
@@ -40,10 +41,21 @@ const roleStyles: Record<string, string> = {
     docente: 'border-affirmative/30 bg-affirmative/8 text-affirmative',
 };
 
+function getInitials(member: StaffMember): string {
+    const first = member.name?.[0] ?? '';
+    const last = member.apellido_paterno?.[0] ?? '';
+    return (first + last).toUpperCase();
+}
+
 function StaffShow({ member }: { member: StaffMember }) {
+    const fullName = member.name +
+        ([member.apellido_paterno, member.apellido_materno].filter(Boolean).length > 0
+            ? ' ' + [member.apellido_paterno, member.apellido_materno].filter(Boolean).join(' ')
+            : '');
+
     return (
         <>
-            <Head title={`${member.apellido_paterno ?? ''} ${member.apellido_materno ?? ''}, ${member.name}`} />
+            <Head title={fullName} />
 
             <Link
                 href="/staff"
@@ -72,7 +84,7 @@ function StaffShow({ member }: { member: StaffMember }) {
                                     onClick={() => router.post(`/staff/${member.id}/send-invitation`)}
                                 >
                                     <Mail className="size-3.5" />
-                                    ENVIAR INVITACIÓN
+                                    ENVIAR INVITACION
                                 </Button>
                                 <AlertDialog>
                                     <AlertDialogTrigger asChild>
@@ -85,7 +97,7 @@ function StaffShow({ member }: { member: StaffMember }) {
                                         <AlertDialogHeader>
                                             <AlertDialogTitle>Eliminar personal</AlertDialogTitle>
                                             <AlertDialogDescription>
-                                                Esta acción no se puede deshacer. Se eliminará permanentemente el registro de {member.name} {member.apellido_paterno}.
+                                                Esta accion no se puede deshacer. Se eliminara permanentemente el registro de {member.name} {member.apellido_paterno}.
                                             </AlertDialogDescription>
                                         </AlertDialogHeader>
                                         <AlertDialogFooter>
@@ -106,34 +118,53 @@ function StaffShow({ member }: { member: StaffMember }) {
 
                 {/* Main content */}
                 <div className="space-y-4 lg:col-span-9">
-                    {/* Header */}
+                    {/* Header card con foto grande */}
                     <Card className="overflow-hidden shadow-sm">
-                        <div className="bg-primary px-6 py-4">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <h1 className="text-xl font-bold text-primary-foreground">
-                                        {member.apellido_paterno} {member.apellido_materno}, {member.name}
-                                    </h1>
-                                    <p className="mt-0.5 text-sm text-primary-foreground/70">{member.email}</p>
+                        <div className="bg-primary px-6 py-6">
+                            <div className="flex gap-5">
+                                <div className="shrink-0">
+                                    {member.fotografia_display_url ? (
+                                        <img
+                                            src={member.fotografia_display_url}
+                                            alt=""
+                                            className="size-36 rounded-lg border-2 border-primary-foreground/15 object-cover shadow-lg"
+                                        />
+                                    ) : (
+                                        <div className="flex size-36 items-center justify-center rounded-lg border-2 border-primary-foreground/15 bg-primary-foreground/10 text-3xl font-bold text-primary-foreground shadow-lg">
+                                            {getInitials(member)}
+                                        </div>
+                                    )}
                                 </div>
-                                <Badge variant="outline" className={`${roleStyles[member.rol_sistema] ?? ''} border-primary-foreground/20 text-[10px] font-semibold tracking-wider`}>
-                                    {roleLabels[member.rol_sistema] ?? member.rol_sistema}
-                                </Badge>
+                                <div className="flex min-w-0 flex-1 flex-col justify-center">
+                                    <p className="text-[10px] font-bold tracking-[0.15em] text-primary-foreground/60">PERSONAL — GICEM</p>
+                                    <h1 className="mt-1 text-2xl font-bold leading-tight text-primary-foreground">{fullName}</h1>
+                                    <p className="mt-1 text-sm text-primary-foreground/70">{member.email}</p>
+                                    <div className="mt-3 flex flex-wrap gap-2">
+                                        <Badge className="border border-primary-foreground/25 bg-primary-foreground/15 text-[10px] font-semibold tracking-wider text-primary-foreground">
+                                            {roleLabels[member.rol_sistema] ?? member.rol_sistema}
+                                        </Badge>
+                                        {member.grupo_asignado && (
+                                            <Badge variant="outline" className="border-primary-foreground/20 text-[10px] font-semibold tracking-wider text-primary-foreground/80">
+                                                {member.grupo_asignado.nombre_grupo}
+                                            </Badge>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </Card>
 
-                    <CollapsibleSection title="DATOS PERSONALES" defaultOpen>
+                    <CollapsibleSection title="DATOS PERSONALES" icon={User} defaultOpen>
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                             <DataItem label="Nombre(s)" value={member.name} />
                             <DataItem label="Apellido paterno" value={member.apellido_paterno ?? 'No registrado'} />
                             <DataItem label="Apellido materno" value={member.apellido_materno ?? 'No registrado'} />
-                            <DataItem label="Correo electrónico" value={member.email} />
+                            <DataItem label="Correo electronico" value={member.email} />
                             <DataItem label="Rol del sistema" value={roleLabels[member.rol_sistema] ?? member.rol_sistema} />
                         </div>
                     </CollapsibleSection>
 
-                    <CollapsibleSection title="ASIGNACIÓN" defaultOpen>
+                    <CollapsibleSection title="ASIGNACION" icon={Briefcase} defaultOpen>
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <DataItem label="Grupo asignado" value={member.grupo_asignado?.nombre_grupo ?? 'Sin asignar'} />
                         </div>
@@ -144,12 +175,20 @@ function StaffShow({ member }: { member: StaffMember }) {
     );
 }
 
-function CollapsibleSection({ title, defaultOpen = false, children }: { title: string; defaultOpen?: boolean; children: React.ReactNode }) {
+function CollapsibleSection({ title, icon: Icon, defaultOpen = false, children }: {
+    title: string;
+    icon: React.ComponentType<{ className?: string }>;
+    defaultOpen?: boolean;
+    children: React.ReactNode;
+}) {
     const [open, setOpen] = useState(defaultOpen);
     return (
         <Card className="overflow-hidden shadow-sm">
             <button type="button" onClick={() => setOpen(!open)} className="flex w-full items-center justify-between bg-primary/8 px-6 py-3 text-left transition-colors hover:bg-primary/12">
-                <span className="text-[11px] font-bold tracking-[0.1em] text-primary">{title}</span>
+                <span className="flex items-center gap-2">
+                    <Icon className="size-4 text-primary" />
+                    <span className="text-[11px] font-bold tracking-[0.1em] text-primary">{title}</span>
+                </span>
                 {open ? <ChevronUp className="size-4 text-primary" /> : <ChevronDown className="size-4 text-primary" />}
             </button>
             {open && <CardContent className="px-6 py-4">{children}</CardContent>}

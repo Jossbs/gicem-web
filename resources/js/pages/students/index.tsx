@@ -289,33 +289,37 @@ function StudentsIndex({ students, drafts, filters, disabilityOptions, statusOpt
                     <Table>
                         <TableHeader>
                             <TableRow className="bg-primary hover:bg-primary dark:bg-[oklch(0.28_0.06_9.01)] dark:hover:bg-[oklch(0.28_0.06_9.01)]">
-                                <TableHead className="text-[11px] font-bold tracking-[0.1em] text-primary-foreground">NOMBRE DEL ALUMNO</TableHead>
-                                <TableHead className="text-[11px] font-bold tracking-[0.1em] text-primary-foreground">DISCAPACIDAD PRIMARIA</TableHead>
-                                <TableHead className="text-[11px] font-bold tracking-[0.1em] text-primary-foreground">GRADO / GRUPO</TableHead>
-                                <TableHead className="text-[11px] font-bold tracking-[0.1em] text-primary-foreground">ESTATUS</TableHead>
-                                <TableHead className="text-right text-[11px] font-bold tracking-[0.1em] text-primary-foreground">ACCIONES</TableHead>
+                                <TableHead className="text-center text-[11px] font-bold tracking-[0.1em] text-primary-foreground">NOMBRE(S)</TableHead>
+                                <TableHead className="text-center text-[11px] font-bold tracking-[0.1em] text-primary-foreground">APELLIDOS</TableHead>
+                                <TableHead className="text-center text-[11px] font-bold tracking-[0.1em] text-primary-foreground">DISCAPACIDAD</TableHead>
+                                <TableHead className="text-center text-[11px] font-bold tracking-[0.1em] text-primary-foreground">GRADO / GRUPO</TableHead>
+                                <TableHead className="text-center text-[11px] font-bold tracking-[0.1em] text-primary-foreground">ESTATUS</TableHead>
+                                <TableHead className="text-center text-[11px] font-bold tracking-[0.1em] text-primary-foreground">ACCIONES</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {students.data.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="py-12 text-center text-sm text-muted-foreground">
+                                    <TableCell colSpan={6} className="py-12 text-center text-sm text-muted-foreground">
                                         No se encontraron expedientes con esos filtros.
                                     </TableCell>
                                 </TableRow>
                             ) : (
                                 students.data.map((student) => (
                                     <TableRow key={student.id}>
-                                        <TableCell className="font-medium">
-                                            {student.apellido_paterno} {student.apellido_materno}, {student.nombre_completo}
+                                        <TableCell className="text-center font-medium">
+                                            {student.nombre_completo}
                                         </TableCell>
-                                        <TableCell>
+                                        <TableCell className="text-center">
+                                            {student.apellido_paterno} {student.apellido_materno}
+                                        </TableCell>
+                                        <TableCell className="text-center">
                                             {student.discapacidad ? (disabilityLabels[student.discapacidad] ?? student.discapacidad) : '—'}
                                         </TableCell>
-                                        <TableCell>
+                                        <TableCell className="text-center">
                                             {student.grado_grupo ?? <span className="text-muted-foreground">Sin asignar</span>}
                                         </TableCell>
-                                        <TableCell>
+                                        <TableCell className="text-center">
                                             <Badge
                                                 variant="outline"
                                                 className={`text-[10px] font-semibold tracking-wider ${statusColors[student.estatus_alumno ?? ''] ?? ''}`}
@@ -323,8 +327,8 @@ function StudentsIndex({ students, drafts, filters, disabilityOptions, statusOpt
                                                 {statusLabels[student.estatus_alumno ?? ''] ?? student.estatus_alumno}
                                             </Badge>
                                         </TableCell>
-                                        <TableCell className="text-right">
-                                            <div className="flex items-center justify-end gap-1">
+                                        <TableCell className="text-center">
+                                            <div className="flex items-center justify-center gap-1">
                                                 <Button variant="ghost" size="sm" className="size-8 p-0" asChild>
                                                     <Link href={`/students/${student.id}`}>
                                                         <Eye className="size-4" />

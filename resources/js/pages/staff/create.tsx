@@ -10,9 +10,18 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import AuthenticatedLayout from '@/layouts/authenticated-layout';
-import { Head, Link, useForm } from '@inertiajs/react';
-import { ArrowLeft, Save } from 'lucide-react';
-import { type FormEvent, type ReactNode } from 'react';
+import { Head, Link, router } from '@inertiajs/react';
+import {
+    ArrowLeft,
+    ArrowRight,
+    Check,
+    ChevronLeft,
+    KeyRound,
+    Save,
+    Upload,
+    User,
+} from 'lucide-react';
+import { type ReactNode, useRef, useState } from 'react';
 
 interface EnumOption {
     value: string;
@@ -24,8 +33,34 @@ interface Props {
     groupOptions: EnumOption[];
 }
 
+const sectionsList = [
+    { number: '01', title: 'Datos Personales', icon: User },
+    { number: '02', title: 'Acceso al Sistema', icon: KeyRound },
+];
+
+type FormData = {
+    name: string;
+    apellido_paterno: string;
+    apellido_materno: string;
+    email: string;
+    password: string;
+    enviar_invitacion: boolean;
+    rol_sistema: string;
+    grupo_asignado_id: string;
+    fotografia: File | null;
+};
+
+const requiredFieldsBySection: Record<number, (keyof FormData)[]> = {
+    0: ['name', 'apellido_paterno', 'apellido_materno', 'email'],
+    1: ['rol_sistema'],
+};
+
 function StaffCreate({ roleOptions, groupOptions }: Props) {
-    const { data, setData, post, processing, errors } = useForm({
+    const [activeSection, setActiveSection] = useState(0);
+    const [processing, setProcessing] = useState(false);
+    const [errors, setErrors] = useState<Record<string, string>>({});
+
+    const [data, setDataState] = useState<FormData>({
         name: '',
         apellido_paterno: '',
         apellido_materno: '',
@@ -34,19 +69,51 @@ function StaffCreate({ roleOptions, groupOptions }: Props) {
         enviar_invitacion: true,
         rol_sistema: '',
         grupo_asignado_id: '',
-        fotografia: null as File | null,
+        fotografia: null,
     });
 
-    function handleSubmit(e: FormEvent) {
-        e.preventDefault();
-        post('/staff');
+    function setData<K extends keyof FormData>(key: K, value: FormData[K]) {
+        setDataState((prev) => ({ ...prev, [key]: value }));
+    }
+
+    function isSectionComplete(sectionIndex: number): boolean {
+        const fields = requiredFieldsBySection[sectionIndex];
+        if (!fields) return false;
+        return fields.every((field) => {
+            const value = data[field];
+            return value !== '' && value !== null && value !== undefined;
+        });
+    }
+
+    function submitForm() {
+        setProcessing(true);
+
+        const formData = new FormData();
+        Object.entries(data).forEach(([key, value]) => {
+            if (value === null || value === undefined) return;
+            if (value instanceof File) {
+                formData.append(key, value);
+            } else if (typeof value === 'boolean') {
+                formData.append(key, value ? '1' : '0');
+            } else {
+                formData.append(key, String(value));
+            }
+        });
+
+        router.post('/staff', formData, {
+            forceFormData: true,
+            onError: (err) => {
+                setErrors(err);
+                setProcessing(false);
+            },
+            onSuccess: () => setProcessing(false),
+        });
     }
 
     return (
         <>
             <Head title="Nuevo Personal" />
 
-            {/* Back link */}
             <Link
                 href="/staff"
                 className="mb-6 inline-flex items-center gap-1.5 text-xs font-semibold tracking-[0.1em] text-muted-foreground transition-colors hover:text-foreground"
@@ -55,7 +122,6 @@ function StaffCreate({ roleOptions, groupOptions }: Props) {
                 REGRESAR AL DIRECTORIO
             </Link>
 
-            {/* Header */}
             <div className="mb-6">
                 <h1 className="text-2xl font-bold tracking-tight text-foreground">
                     Nuevo Personal
@@ -65,181 +131,228 @@ function StaffCreate({ roleOptions, groupOptions }: Props) {
                 </p>
             </div>
 
-            <form onSubmit={handleSubmit}>
-                <Card className="shadow-sm">
-                    <CardContent className="grid grid-cols-1 gap-6 px-6 py-6 md:grid-cols-2">
-                        {/* Nombre */}
-                        <div className="space-y-2">
-                            <Label htmlFor="name" className="text-[11px] font-bold tracking-[0.1em] uppercase text-foreground">
-                                NOMBRE(S) *
-                            </Label>
-                            <Input
-                                id="name"
-                                value={data.name}
-                                onChange={(e) => setData('name', e.target.value)}
-                                placeholder="Nombre(s)"
-                                className="h-10"
-                            />
-                            {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
-                        </div>
-
-                        {/* Apellido paterno */}
-                        <div className="space-y-2">
-                            <Label htmlFor="apellido_paterno" className="text-[11px] font-bold tracking-[0.1em] uppercase text-foreground">
-                                APELLIDO PATERNO *
-                            </Label>
-                            <Input
-                                id="apellido_paterno"
-                                value={data.apellido_paterno}
-                                onChange={(e) => setData('apellido_paterno', e.target.value)}
-                                placeholder="Apellido paterno"
-                                className="h-10"
-                            />
-                            {errors.apellido_paterno && <p className="text-xs text-destructive">{errors.apellido_paterno}</p>}
-                        </div>
-
-                        {/* Apellido materno */}
-                        <div className="space-y-2">
-                            <Label htmlFor="apellido_materno" className="text-[11px] font-bold tracking-[0.1em] uppercase text-foreground">
-                                APELLIDO MATERNO *
-                            </Label>
-                            <Input
-                                id="apellido_materno"
-                                value={data.apellido_materno}
-                                onChange={(e) => setData('apellido_materno', e.target.value)}
-                                placeholder="Apellido materno"
-                                className="h-10"
-                            />
-                            {errors.apellido_materno && <p className="text-xs text-destructive">{errors.apellido_materno}</p>}
-                        </div>
-
-                        {/* Correo */}
-                        <div className="space-y-2">
-                            <Label htmlFor="email" className="text-[11px] font-bold tracking-[0.1em] uppercase text-foreground">
-                                CORREO ELECTRÓNICO *
-                            </Label>
-                            <Input
-                                id="email"
-                                type="email"
-                                value={data.email}
-                                onChange={(e) => setData('email', e.target.value)}
-                                placeholder="ejemplo@correo.com"
-                                className="h-10"
-                            />
-                            {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
-                        </div>
-
-                        {/* Invitación por correo */}
-                        <div className="col-span-full space-y-3 rounded-lg border border-border bg-muted/30 p-4">
-                            <label className="flex cursor-pointer items-center gap-3">
-                                <input
-                                    type="checkbox"
-                                    checked={data.enviar_invitacion}
-                                    onChange={(e) => {
-                                        setData('enviar_invitacion', e.target.checked);
-                                        if (e.target.checked) setData('password', '');
-                                    }}
-                                    className="size-4 rounded border-input accent-primary"
-                                />
-                                <div>
-                                    <span className="text-sm font-medium text-foreground">
-                                        Enviar invitación por correo electrónico
-                                    </span>
-                                    <p className="text-xs text-muted-foreground">
-                                        El usuario recibirá un correo con un enlace para crear su contraseña y acceder al sistema.
-                                    </p>
-                                </div>
-                            </label>
-                        </div>
-
-                        {/* Contraseña (solo si NO se envía invitación) */}
-                        {!data.enviar_invitacion && (
-                            <div className="space-y-2">
-                                <Label htmlFor="password" className="text-[11px] font-bold tracking-[0.1em] uppercase text-foreground">
-                                    CONTRASEÑA *
-                                </Label>
-                                <Input
-                                    id="password"
-                                    type="password"
-                                    value={data.password}
-                                    onChange={(e) => setData('password', e.target.value)}
-                                    placeholder="Mínimo 8 caracteres"
-                                    className="h-10"
-                                />
-                                {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
-                            </div>
-                        )}
-
-                        {/* Rol */}
-                        <div className="space-y-2">
-                            <Label htmlFor="rol_sistema" className="text-[11px] font-bold tracking-[0.1em] uppercase text-foreground">
-                                PERFIL DE USUARIO *
-                            </Label>
-                            <Select value={data.rol_sistema} onValueChange={(v) => setData('rol_sistema', v)}>
-                                <SelectTrigger className="h-10">
-                                    <SelectValue placeholder="Seleccionar rol" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {roleOptions.map((opt) => (
-                                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            {errors.rol_sistema && <p className="text-xs text-destructive">{errors.rol_sistema}</p>}
-                        </div>
-
-                        {/* Grupo asignado */}
-                        <div className="space-y-2">
-                            <Label htmlFor="grupo_asignado_id" className="text-[11px] font-bold tracking-[0.1em] uppercase text-foreground">
-                                GRUPO ASIGNADO
-                            </Label>
-                            <Select
-                                value={data.grupo_asignado_id}
-                                onValueChange={(v) => setData('grupo_asignado_id', v === 'none' ? '' : v)}
-                            >
-                                <SelectTrigger className="h-10">
-                                    <SelectValue placeholder="Seleccionar grupo" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="none">Sin asignar</SelectItem>
-                                    {groupOptions.map((opt) => (
-                                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            {errors.grupo_asignado_id && <p className="text-xs text-destructive">{errors.grupo_asignado_id}</p>}
-                        </div>
-
-                        {/* Fotografía */}
-                        <div className="space-y-2">
-                            <Label htmlFor="fotografia" className="text-[11px] font-bold tracking-[0.1em] uppercase text-foreground">
-                                FOTOGRAFÍA
-                            </Label>
-                            <Input
-                                id="fotografia"
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => setData('fotografia', e.target.files?.[0] ?? null)}
-                                className="h-10"
-                            />
-                            {errors.fotografia && <p className="text-xs text-destructive">{errors.fotografia}</p>}
-                        </div>
-                    </CardContent>
-                </Card>
-
-                {/* Submit */}
-                <div className="mt-6 flex justify-end">
-                    <Button
-                        type="submit"
-                        disabled={processing}
-                        className="h-11 gap-2 text-xs font-semibold tracking-[0.1em]"
-                    >
-                        <Save className="size-4" />
-                        {processing ? 'GUARDANDO...' : 'GUARDAR PERSONAL'}
-                    </Button>
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+                {/* Sidebar de secciones */}
+                <div className="lg:col-span-3">
+                    <div className="sticky top-6">
+                        <Card className="shadow-sm">
+                            <CardContent className="px-4 py-4">
+                                <p className="mb-3 text-[11px] font-bold tracking-[0.1em] text-muted-foreground">SECCIONES</p>
+                                <nav className="space-y-1">
+                                    {sectionsList.map((section, index) => {
+                                        const isActive = activeSection === index;
+                                        const isComplete = isSectionComplete(index);
+                                        const Icon = section.icon;
+                                        return (
+                                            <button
+                                                key={section.number}
+                                                type="button"
+                                                onClick={() => setActiveSection(index)}
+                                                className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-all ${
+                                                    isActive
+                                                        ? 'border-l-3 border-l-golden bg-primary/6 text-primary'
+                                                        : 'border-l-3 border-l-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+                                                }`}
+                                            >
+                                                <span className={`flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+                                                    isComplete
+                                                        ? 'bg-affirmative text-white'
+                                                        : isActive
+                                                            ? 'bg-golden text-white'
+                                                            : 'bg-muted text-muted-foreground'
+                                                }`}>
+                                                    {isComplete ? <Check className="size-3.5" /> : section.number}
+                                                </span>
+                                                <span className={`text-xs font-semibold leading-tight ${isActive ? 'text-golden' : ''}`}>
+                                                    {section.title}
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
+                                </nav>
+                            </CardContent>
+                        </Card>
+                    </div>
                 </div>
-            </form>
+
+                {/* Contenido del formulario */}
+                <div className="lg:col-span-9">
+                    {/* Seccion 01: Datos Personales */}
+                    {activeSection === 0 && (
+                        <Card className="overflow-hidden border-l-4 border-l-primary py-0 shadow-sm">
+                            <div className="flex items-center gap-2 bg-primary px-6 py-3">
+                                <User className="size-4 text-primary-foreground/70" />
+                                <span className="text-[11px] font-bold tracking-[0.1em] text-primary-foreground">01. DATOS PERSONALES</span>
+                            </div>
+                            <CardContent className="grid grid-cols-1 gap-6 px-6 py-6 md:grid-cols-2">
+                                <FormField label="NOMBRE(S) *" error={errors.name}>
+                                    <Input value={data.name} onChange={(e) => setData('name', e.target.value)} placeholder="Nombre(s)" className="h-10" />
+                                </FormField>
+                                <FormField label="APELLIDO PATERNO *" error={errors.apellido_paterno}>
+                                    <Input value={data.apellido_paterno} onChange={(e) => setData('apellido_paterno', e.target.value)} placeholder="Apellido paterno" className="h-10" />
+                                </FormField>
+                                <FormField label="APELLIDO MATERNO *" error={errors.apellido_materno}>
+                                    <Input value={data.apellido_materno} onChange={(e) => setData('apellido_materno', e.target.value)} placeholder="Apellido materno" className="h-10" />
+                                </FormField>
+                                <FormField label="CORREO ELECTRONICO *" error={errors.email}>
+                                    <Input type="email" value={data.email} onChange={(e) => setData('email', e.target.value)} placeholder="ejemplo@correo.com" className="h-10" />
+                                </FormField>
+                                <FileUploadField
+                                    label="FOTOGRAFIA"
+                                    accept="image/*"
+                                    error={errors.fotografia}
+                                    file={data.fotografia}
+                                    onFileChange={(f) => setData('fotografia', f)}
+                                />
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {/* Seccion 02: Acceso al Sistema */}
+                    {activeSection === 1 && (
+                        <Card className="overflow-hidden border-l-4 border-l-primary py-0 shadow-sm">
+                            <div className="flex items-center gap-2 bg-primary px-6 py-3">
+                                <KeyRound className="size-4 text-primary-foreground/70" />
+                                <span className="text-[11px] font-bold tracking-[0.1em] text-primary-foreground">02. ACCESO AL SISTEMA</span>
+                            </div>
+                            <CardContent className="grid grid-cols-1 gap-6 px-6 py-6 md:grid-cols-2">
+                                <div className="col-span-full space-y-3 rounded-lg border border-border bg-muted/30 p-4">
+                                    <label className="flex cursor-pointer items-center gap-3">
+                                        <input
+                                            type="checkbox"
+                                            checked={data.enviar_invitacion}
+                                            onChange={(e) => {
+                                                setData('enviar_invitacion', e.target.checked);
+                                                if (e.target.checked) setData('password', '');
+                                            }}
+                                            className="size-4 rounded border-input accent-primary"
+                                        />
+                                        <div>
+                                            <span className="text-sm font-medium text-foreground">
+                                                Enviar invitacion por correo electronico
+                                            </span>
+                                            <p className="text-xs text-muted-foreground">
+                                                El usuario recibira un correo con un enlace para crear su contrasena y acceder al sistema.
+                                            </p>
+                                        </div>
+                                    </label>
+                                </div>
+
+                                {!data.enviar_invitacion && (
+                                    <FormField label="CONTRASENA *" error={errors.password}>
+                                        <Input type="password" value={data.password} onChange={(e) => setData('password', e.target.value)} placeholder="Minimo 8 caracteres" className="h-10" />
+                                    </FormField>
+                                )}
+
+                                <FormField label="PERFIL DE USUARIO *" error={errors.rol_sistema}>
+                                    <Select value={data.rol_sistema} onValueChange={(v) => setData('rol_sistema', v)}>
+                                        <SelectTrigger className="h-10"><SelectValue placeholder="Seleccionar rol" /></SelectTrigger>
+                                        <SelectContent>
+                                            {roleOptions.map((opt) => (
+                                                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </FormField>
+
+                                <FormField label="GRUPO ASIGNADO" error={errors.grupo_asignado_id}>
+                                    <Select value={data.grupo_asignado_id} onValueChange={(v) => setData('grupo_asignado_id', v === 'none' ? '' : v)}>
+                                        <SelectTrigger className="h-10"><SelectValue placeholder="Sin asignar" /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="none">Sin asignar</SelectItem>
+                                            {groupOptions.map((opt) => (
+                                                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </FormField>
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {/* Navigation footer */}
+                    <div className="mt-6 flex items-center justify-between">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            className="h-11 gap-2 text-xs font-semibold tracking-[0.1em]"
+                            disabled={activeSection === 0}
+                            onClick={() => setActiveSection(activeSection - 1)}
+                        >
+                            <ChevronLeft className="size-4" />
+                            ANTERIOR
+                        </Button>
+
+                        <div className="flex gap-3">
+                            {activeSection < sectionsList.length - 1 ? (
+                                <Button
+                                    type="button"
+                                    className="h-11 gap-2 text-xs font-semibold tracking-[0.1em]"
+                                    onClick={() => setActiveSection(activeSection + 1)}
+                                >
+                                    SIGUIENTE
+                                    <ArrowRight className="size-4" />
+                                </Button>
+                            ) : (
+                                <Button
+                                    type="button"
+                                    disabled={processing}
+                                    className="h-11 gap-2 text-xs font-semibold tracking-[0.1em]"
+                                    onClick={submitForm}
+                                >
+                                    <Save className="size-4" />
+                                    {processing ? 'GUARDANDO...' : 'GUARDAR PERSONAL'}
+                                </Button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
         </>
+    );
+}
+
+function FormField({ label, error, className, children }: { label: string; error?: string; className?: string; children: React.ReactNode }) {
+    return (
+        <div className={`space-y-2 ${className ?? ''}`}>
+            <Label className="text-[11px] font-bold tracking-[0.1em] uppercase text-foreground">{label}</Label>
+            {children}
+            {error && <p className="text-xs text-destructive">{error}</p>}
+        </div>
+    );
+}
+
+function FileUploadField({ label, accept, error, file, onFileChange, existingUrl }: {
+    label: string;
+    accept: string;
+    error?: string;
+    file: File | null;
+    onFileChange: (file: File | null) => void;
+    existingUrl?: string | null;
+}) {
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    return (
+        <div className="space-y-2">
+            <Label className="text-[11px] font-bold tracking-[0.1em] uppercase text-foreground">{label}</Label>
+            <div
+                onClick={() => inputRef.current?.click()}
+                className="flex cursor-pointer items-center gap-3 rounded-lg border border-dashed border-border px-4 py-3 transition-colors hover:border-primary/40 hover:bg-muted/30"
+            >
+                <Upload className="size-4 shrink-0 text-muted-foreground" />
+                <span className="truncate text-sm text-muted-foreground">
+                    {file ? file.name : existingUrl ? 'Archivo subido (click para reemplazar)' : 'Click para seleccionar archivo'}
+                </span>
+                <input
+                    ref={inputRef}
+                    type="file"
+                    accept={accept}
+                    className="hidden"
+                    onChange={(e) => onFileChange(e.target.files?.[0] ?? null)}
+                />
+            </div>
+            {error && <p className="text-xs text-destructive">{error}</p>}
+        </div>
     );
 }
 

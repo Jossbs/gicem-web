@@ -111,6 +111,8 @@ class StudentController extends Controller
 
     public function show(Student $student): Response
     {
+        $student->append($this->documentAppends());
+
         return Inertia::render('students/show', [
             'student' => $student,
         ]);
@@ -118,6 +120,8 @@ class StudentController extends Controller
 
     public function edit(Student $student): Response
     {
+        $student->append($this->documentAppends());
+
         return Inertia::render('students/edit', array_merge(
             ['student' => $student],
             $this->formOptions(),
@@ -187,6 +191,22 @@ class StudentController extends Controller
                 ->map(fn (Group $g) => ['value' => $g->nombre_grupo, 'label' => $g->nombre_grupo])
                 ->values()
                 ->all(),
+        ];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function documentAppends(): array
+    {
+        return [
+            'fotografia_display_url',
+            'doc_acta_nacimiento_url',
+            'curp_alumno_doc_url',
+            'doc_cert_discapacidad_url',
+            'nss_original_doc_url',
+            'comprobante_domicilio_doc_url',
+            'ine_tutor_doc_url',
         ];
     }
 

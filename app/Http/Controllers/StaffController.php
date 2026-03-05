@@ -85,6 +85,7 @@ class StaffController extends Controller
     public function show(User $staff): Response
     {
         $staff->load('grupoAsignado:id,nombre_grupo');
+        $staff->append('fotografia_display_url');
 
         return Inertia::render('staff/show', [
             'member' => $staff,
@@ -93,6 +94,8 @@ class StaffController extends Controller
 
     public function edit(User $staff): Response
     {
+        $staff->append('fotografia_display_url');
+
         return Inertia::render('staff/edit', [
             'member' => $staff,
             'roleOptions' => $this->getStaffRoleOptions(),

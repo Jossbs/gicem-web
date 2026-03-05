@@ -52,7 +52,7 @@ function GuardiansShow({ student }: { student: StudentGuardian }) {
 
     return (
         <>
-            <Head title={`${student.tutor_apellido_paterno} ${student.tutor_apellido_materno}, ${student.tutor_nombre}`} />
+            <Head title={`${student.tutor_nombre} ${student.tutor_apellido_paterno} ${student.tutor_apellido_materno}`} />
 
             <Link
                 href="/guardians"
@@ -130,7 +130,7 @@ function GuardiansShow({ student }: { student: StudentGuardian }) {
                     <Card className="overflow-hidden shadow-sm">
                         <div className="bg-primary px-6 py-4">
                             <h1 className="text-xl font-bold text-primary-foreground">
-                                {student.tutor_apellido_paterno} {student.tutor_apellido_materno}, {student.tutor_nombre}
+                                {student.tutor_nombre} {student.tutor_apellido_paterno} {student.tutor_apellido_materno}
                             </h1>
                             <p className="mt-0.5 text-sm text-primary-foreground/70">
                                 {kinshipLabels[student.tutor_parentesco] ?? student.tutor_parentesco} de {student.nombre_completo} {student.apellido_paterno}
@@ -163,7 +163,7 @@ function GuardiansShow({ student }: { student: StudentGuardian }) {
 
                     <CollapsibleSection title="ALUMNO ASOCIADO" defaultOpen>
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                            <DataItem label="Alumno" value={`${student.apellido_paterno} ${student.apellido_materno}, ${student.nombre_completo}`} />
+                            <DataItem label="Alumno" value={`${student.nombre_completo} ${student.apellido_paterno} ${student.apellido_materno}`} />
                             <div>
                                 <p className="text-[10px] font-bold tracking-[0.1em] uppercase text-muted-foreground">Ver expediente</p>
                                 <Link href={`/students/${student.id}`} className="mt-0.5 text-sm font-medium text-primary hover:underline">

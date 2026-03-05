@@ -141,6 +141,7 @@ function GroupsShow({ group }: { group: Group }) {
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                             <DataItem label="Nombre del grupo" value={group.nombre_grupo} />
                             <DataItem label="Docente titular" value={group.docente ? `${group.docente.name} ${group.docente.apellido_paterno ?? ''} ${group.docente.apellido_materno ?? ''}`.trim() : 'Sin asignar'} />
+
                             <DataItem label="Nivel educativo" value={levelLabels[group.nivel_educativo] ?? group.nivel_educativo} />
                             <DataItem label="Grado" value={gradeLabels[group.grado] ?? group.grado} />
                             <DataItem label="Turno" value={shiftLabels[group.turno] ?? group.turno} />
@@ -159,23 +160,25 @@ function GroupsShow({ group }: { group: Group }) {
                                 <Table>
                                     <TableHeader>
                                         <TableRow className="bg-primary/5">
-                                            <TableHead className="text-[11px] font-bold tracking-[0.1em]">ALUMNO</TableHead>
-                                            <TableHead className="text-[11px] font-bold tracking-[0.1em]">DISCAPACIDAD</TableHead>
-                                            <TableHead className="text-[11px] font-bold tracking-[0.1em]">ESTATUS</TableHead>
-                                            <TableHead className="text-right text-[11px] font-bold tracking-[0.1em]">VER</TableHead>
+                                            <TableHead className="text-center text-[11px] font-bold tracking-[0.1em]">NOMBRE(S)</TableHead>
+                                            <TableHead className="text-center text-[11px] font-bold tracking-[0.1em]">APELLIDOS</TableHead>
+                                            <TableHead className="text-center text-[11px] font-bold tracking-[0.1em]">DISCAPACIDAD</TableHead>
+                                            <TableHead className="text-center text-[11px] font-bold tracking-[0.1em]">ESTATUS</TableHead>
+                                            <TableHead className="text-center text-[11px] font-bold tracking-[0.1em]">VER</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {group.students.map((s) => (
                                             <TableRow key={s.id}>
-                                                <TableCell className="font-medium">{s.apellido_paterno} {s.apellido_materno}, {s.nombre_completo}</TableCell>
-                                                <TableCell>{disabilityLabels[s.discapacidad] ?? s.discapacidad}</TableCell>
-                                                <TableCell>
+                                                <TableCell className="text-center font-medium">{s.nombre_completo}</TableCell>
+                                                <TableCell className="text-center">{s.apellido_paterno} {s.apellido_materno}</TableCell>
+                                                <TableCell className="text-center">{disabilityLabels[s.discapacidad] ?? s.discapacidad}</TableCell>
+                                                <TableCell className="text-center">
                                                     <Badge variant="outline" className={`text-[10px] font-semibold tracking-wider ${statusColors[s.estatus_alumno] ?? ''}`}>
                                                         {statusLabels[s.estatus_alumno] ?? s.estatus_alumno}
                                                     </Badge>
                                                 </TableCell>
-                                                <TableCell className="text-right">
+                                                <TableCell className="text-center">
                                                     <Button variant="ghost" size="sm" className="size-8 p-0" asChild>
                                                         <Link href={`/students/${s.id}`}><Eye className="size-4" /></Link>
                                                     </Button>

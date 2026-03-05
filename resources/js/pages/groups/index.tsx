@@ -44,6 +44,8 @@ interface Group {
     docente: {
         id: number;
         name: string;
+        apellido_paterno: string | null;
+        apellido_materno: string | null;
     } | null;
 }
 
@@ -212,19 +214,19 @@ function GroupsIndex({ groups, filters, levelOptions, shiftOptions }: Props) {
                     <Table>
                         <TableHeader>
                             <TableRow className="bg-primary hover:bg-primary dark:bg-[oklch(0.28_0.06_9.01)] dark:hover:bg-[oklch(0.28_0.06_9.01)]">
-                                <TableHead className="text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
+                                <TableHead className="text-center text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
                                     GRUPO Y NIVEL
                                 </TableHead>
-                                <TableHead className="text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
+                                <TableHead className="text-center text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
                                     AULA Y TURNO
                                 </TableHead>
-                                <TableHead className="text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
+                                <TableHead className="text-center text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
                                     DOCENTE TITULAR
                                 </TableHead>
-                                <TableHead className="text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
+                                <TableHead className="text-center text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
                                     CAPACIDAD
                                 </TableHead>
-                                <TableHead className="text-right text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
+                                <TableHead className="text-center text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
                                     ACCIONES
                                 </TableHead>
                             </TableRow>
@@ -261,26 +263,27 @@ function GroupsIndex({ groups, filters, levelOptions, shiftOptions }: Props) {
                             ) : (
                                 groups.data.map((group) => (
                                     <TableRow key={group.id} className="group">
-                                        <TableCell className="font-medium text-foreground">
+                                        <TableCell className="text-center font-medium text-foreground">
                                             <div>{group.nombre_grupo}</div>
                                             <div className="text-xs text-muted-foreground">
                                                 {levelLabels[group.nivel_educativo] ?? group.nivel_educativo} / {gradeLabels[group.grado] ?? group.grado}
                                             </div>
                                         </TableCell>
-                                        <TableCell>
+                                        <TableCell className="text-center">
                                             <div>{group.aula_fisica}</div>
                                             <div className="text-xs text-muted-foreground">{shiftLabels[group.turno] ?? group.turno}</div>
                                         </TableCell>
-                                        <TableCell>
-                                            {group.docente?.name ?? (
-                                                <span className="text-xs italic text-muted-foreground">Sin asignar</span>
-                                            )}
+                                        <TableCell className="text-center">
+                                            {group.docente
+                                                ? `${group.docente.name} ${group.docente.apellido_paterno ?? ''} ${group.docente.apellido_materno ?? ''}`.trim()
+                                                : (<span className="text-xs italic text-muted-foreground">Sin asignar</span>)
+                                            }
                                         </TableCell>
-                                        <TableCell>
+                                        <TableCell className="text-center">
                                             {group.students_count ?? 0} / {group.capacidad_maxima}
                                         </TableCell>
-                                        <TableCell className="text-right">
-                                            <div className="flex items-center justify-end gap-1">
+                                        <TableCell className="text-center">
+                                            <div className="flex items-center justify-center gap-1">
                                                 <Button variant="ghost" size="sm" className="size-8 p-0 opacity-60 group-hover:opacity-100" asChild>
                                                     <Link href={`/groups/${group.id}`}><Eye className="size-4" /></Link>
                                                 </Button>

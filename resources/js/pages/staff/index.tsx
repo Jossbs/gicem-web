@@ -181,19 +181,22 @@ function StaffIndex({ staff, filters, roleOptions }: Props) {
                     <Table>
                         <TableHeader>
                             <TableRow className="bg-primary hover:bg-primary dark:bg-[oklch(0.28_0.06_9.01)] dark:hover:bg-[oklch(0.28_0.06_9.01)]">
-                                <TableHead className="text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
-                                    NOMBRE
+                                <TableHead className="text-center text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
+                                    NOMBRE(S)
                                 </TableHead>
-                                <TableHead className="text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
-                                    CORREO ELECTRÓNICO
+                                <TableHead className="text-center text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
+                                    APELLIDOS
                                 </TableHead>
-                                <TableHead className="text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
+                                <TableHead className="text-center text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
+                                    CORREO
+                                </TableHead>
+                                <TableHead className="text-center text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
                                     ROL
                                 </TableHead>
-                                <TableHead className="text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
-                                    GRUPO ASIGNADO
+                                <TableHead className="text-center text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
+                                    GRUPO
                                 </TableHead>
-                                <TableHead className="text-right text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
+                                <TableHead className="text-center text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
                                     ACCIONES
                                 </TableHead>
                             </TableRow>
@@ -201,7 +204,7 @@ function StaffIndex({ staff, filters, roleOptions }: Props) {
                         <TableBody>
                             {staff.data.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="py-16 text-center">
+                                    <TableCell colSpan={6} className="py-16 text-center">
                                         <div className="flex flex-col items-center gap-3">
                                             <div className="flex size-12 items-center justify-center rounded-full bg-muted">
                                                 <FolderOpen className="size-6 text-muted-foreground" />
@@ -230,17 +233,16 @@ function StaffIndex({ staff, filters, roleOptions }: Props) {
                             ) : (
                                 staff.data.map((member) => (
                                     <TableRow key={member.id} className="group">
-                                        <TableCell className="font-medium">
-                                            <span className="text-foreground">
-                                                {member.apellido_paterno} {member.apellido_materno}
-                                            </span>
-                                            <span className="text-muted-foreground">, </span>
-                                            <span className="text-foreground">{member.name}</span>
+                                        <TableCell className="text-center font-medium">
+                                            {member.name}
                                         </TableCell>
-                                        <TableCell className="text-muted-foreground">
+                                        <TableCell className="text-center">
+                                            {member.apellido_paterno} {member.apellido_materno}
+                                        </TableCell>
+                                        <TableCell className="text-center text-muted-foreground">
                                             {member.email}
                                         </TableCell>
-                                        <TableCell>
+                                        <TableCell className="text-center">
                                             <Badge
                                                 variant="outline"
                                                 className={`text-[10px] font-semibold tracking-wider ${roleStyles[member.rol_sistema] ?? ''}`}
@@ -248,13 +250,13 @@ function StaffIndex({ staff, filters, roleOptions }: Props) {
                                                 {roleLabels[member.rol_sistema] ?? member.rol_sistema}
                                             </Badge>
                                         </TableCell>
-                                        <TableCell>
+                                        <TableCell className="text-center">
                                             {member.grupo_asignado?.nombre_grupo ?? (
                                                 <span className="text-xs italic text-muted-foreground">Sin asignar</span>
                                             )}
                                         </TableCell>
-                                        <TableCell className="text-right">
-                                            <div className="flex items-center justify-end gap-1">
+                                        <TableCell className="text-center">
+                                            <div className="flex items-center justify-center gap-1">
                                                 <Button variant="ghost" size="sm" className="size-8 p-0 opacity-60 group-hover:opacity-100" asChild>
                                                     <Link href={`/staff/${member.id}`}><Eye className="size-4" /></Link>
                                                 </Button>

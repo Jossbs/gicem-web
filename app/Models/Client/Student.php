@@ -23,16 +23,6 @@ class Student extends Model
 
     protected $guarded = [];
 
-    protected $appends = [
-        'fotografia_display_url',
-        'doc_acta_nacimiento_url',
-        'curp_alumno_doc_url',
-        'doc_cert_discapacidad_url',
-        'nss_original_doc_url',
-        'comprobante_domicilio_doc_url',
-        'ine_tutor_doc_url',
-    ];
-
     protected function casts(): array
     {
         return [
