@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import AuthenticatedLayout from '@/layouts/authenticated-layout';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { ArrowRight, ClipboardList, GraduationCap, Heart, UsersRound } from 'lucide-react';
+import { ArrowRight, ClipboardList, GraduationCap, Heart, Megaphone, UsersRound } from 'lucide-react';
 import { type ReactNode } from 'react';
 
 interface AuthUser {
@@ -45,6 +45,14 @@ const modules = [
         description:
             'Directorio de tutores y contactos de emergencia extraídos de los expedientes de alumnos.',
         href: '/guardians',
+    },
+    {
+        icon: Megaphone,
+        category: 'COMUNICACIÓN',
+        title: 'Anuncios',
+        description:
+            'Envío de comunicados a docentes, tutores, grupos completos o toda la escuela con control de prioridad.',
+        href: '/anuncios',
     },
 ];
 

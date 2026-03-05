@@ -25,6 +25,7 @@ const navLinks = [
     { label: 'Grupos', href: '/groups' },
     { label: 'Personal', href: '/staff' },
     { label: 'Tutores', href: '/guardians' },
+    { label: 'Anuncios', href: '/anuncios' },
 ];
 
 function getInitials(name: string): string {
