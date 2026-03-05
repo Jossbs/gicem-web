@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import AuthenticatedLayout from '@/layouts/authenticated-layout';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { ArrowRight, GraduationCap, ClipboardList, UsersRound } from 'lucide-react';
+import { ArrowRight, ClipboardList, GraduationCap, Heart, UsersRound } from 'lucide-react';
 import { type ReactNode } from 'react';
 
 interface AuthUser {
@@ -28,7 +28,7 @@ const modules = [
         title: 'Grupos Escolares',
         description:
             'Apertura de grupos, vinculación de alumnos con grados específicos y control de capacidad del aula.',
-        href: '#',
+        href: '/groups',
     },
     {
         icon: UsersRound,
@@ -36,7 +36,15 @@ const modules = [
         title: 'Personal Docente',
         description:
             'Administración de plantilla de maestros y especialistas, creación de cuentas y control de accesos.',
-        href: '#',
+        href: '/staff',
+    },
+    {
+        icon: Heart,
+        category: 'CONTACTO FAMILIAR',
+        title: 'Tutores Legales',
+        description:
+            'Directorio de tutores y contactos de emergencia extraídos de los expedientes de alumnos.',
+        href: '/guardians',
     },
 ];
 
@@ -78,7 +86,7 @@ function Dashboard() {
             </Card>
 
             {/* ── Module Cards ── */}
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                 {modules.map((mod) => (
                     <Card
                         key={mod.title}

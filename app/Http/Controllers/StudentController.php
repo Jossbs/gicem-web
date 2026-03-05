@@ -2,65 +2,293 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\AutonomySkill;
+use App\Enums\BloodType;
+use App\Enums\CommunicationType;
+use App\Enums\DisabilityType;
+use App\Enums\Gender;
+use App\Enums\Kinship;
+use App\Enums\LiteracyLevel;
+use App\Enums\MedicalInstitution;
+use App\Enums\StudentStatus;
+use App\Http\Requests\StoreStudentRequest;
+use App\Http\Requests\UpdateStudentRequest;
+use App\Models\Client\Group;
 use App\Models\Client\Student;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class StudentController extends Controller
 {
-    public function index()
+    public function index(Request $request): Response
     {
-        return Inertia::render('Students/Index', [
-            'students' => Student::select('id', 'first_name', 'paternal_surname', 'enrollment_status')->paginate(10)
+        $drafts = Student::query()
+            ->where('status', 'borrador')
+            ->orderByDesc('updated_at')
+            ->get();
+
+        $students = Student::query()
+            ->where('status', 'completo')
+            ->when($request->input('search'), function ($query, $search): void {
+                $query->where(function ($q) use ($search): void {
+                    $q->where('nombre_completo', 'ilike', "%{$search}%")
+                        ->orWhere('apellido_paterno', 'ilike', "%{$search}%")
+                        ->orWhere('apellido_materno', 'ilike', "%{$search}%")
+                        ->orWhere('curp', 'ilike', "%{$search}%");
+                });
+            })
+            ->when($request->input('discapacidad'), function ($query, $discapacidad): void {
+                $query->where('discapacidad', $discapacidad);
+            })
+            ->when($request->input('estatus'), function ($query, $estatus): void {
+                $query->where('estatus_alumno', $estatus);
+            })
+            ->when($request->input('grupo'), function ($query, $grupo): void {
+                $query->where('grado_grupo', $grupo);
+            })
+            ->orderBy('apellido_paterno')
+            ->orderBy('apellido_materno')
+            ->paginate(15)
+            ->withQueryString();
+
+        return Inertia::render('students/index', [
+            'students' => $students,
+            'drafts' => $drafts,
+            'filters' => $request->only(['search', 'discapacidad', 'estatus', 'grupo']),
+            'disabilityOptions' => $this->enumToOptions(DisabilityType::cases()),
+            'statusOptions' => $this->enumToOptions(StudentStatus::cases()),
+            'groupOptions' => Student::query()
+                ->where('status', 'completo')
+                ->whereNotNull('grado_grupo')
+                ->distinct()
+                ->pluck('grado_grupo')
+                ->sort()
+                ->values()
+                ->all(),
         ]);
     }
 
-    public function create()
+    public function create(): Response
     {
-        // Retornamos catálogos necesarios para los selects
-        return Inertia::render('Students/Create', [
-            'catalogs' => [
-                'blood_types' => ['O+', 'A-', 'AB+', '...'],
-                'disabilities' => ['Motriz', 'Visual', 'Auditiva', 'Intelectual', '...'],
-                // Agrega aquí los demás catálogos del diccionario
-            ]
+        return Inertia::render('students/create', $this->formOptions());
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $action = $request->input('_action', 'finalize');
+
+        if ($action === 'draft') {
+            $data = $this->validateDraft($request);
+            $data['status'] = 'borrador';
+        } else {
+            $formRequest = StoreStudentRequest::createFrom($request);
+            $formRequest->setContainer(app());
+            $validator = Validator::make(
+                $request->all(),
+                $formRequest->rules(),
+                $formRequest->messages(),
+            );
+            $data = $validator->validate();
+            $data['status'] = 'completo';
+        }
+
+        $data = $this->handleFileUploads($request, $data);
+        unset($data['_action']);
+
+        $student = Student::create($data);
+
+        if ($action === 'draft') {
+            return redirect()->route('students.index')
+                ->with('success', 'Borrador guardado exitosamente.');
+        }
+
+        return redirect()->route('students.show', $student)
+            ->with('success', 'Expediente de alumno creado exitosamente.');
+    }
+
+    public function show(Student $student): Response
+    {
+        return Inertia::render('students/show', [
+            'student' => $student,
         ]);
     }
 
-    public function store(Request $request)
+    public function edit(Student $student): Response
     {
-        // Validación base (permitimos nullable si es borrador, required si es final)
-        // Aquí simplifico asumiendo que guardan un registro completo por ahora.
-        $validated = $request->validate([
-            'first_name' => 'required|string|max:255',
-            'paternal_surname' => 'required|string|max:255',
-            'curp' => 'required|string|size:18|unique:client.students,curp',
-            'birth_date' => 'required|date',
-            'doc_acta_nacimiento' => 'nullable|file|mimes:pdf|max:2048', // Usamos nombres del form
-            // ... resto de validaciones según "Obligatoriedad"
+        return Inertia::render('students/edit', array_merge(
+            ['student' => $student],
+            $this->formOptions(),
+        ));
+    }
+
+    public function update(Request $request, Student $student): RedirectResponse
+    {
+        $action = $request->input('_action', 'finalize');
+
+        if ($action === 'draft') {
+            $data = $this->validateDraft($request);
+            $data['status'] = 'borrador';
+        } else {
+            $formRequest = UpdateStudentRequest::createFrom($request);
+            $formRequest->setContainer(app());
+            $formRequest->setRouteResolver(fn () => $request->route());
+            $validator = Validator::make(
+                $request->all(),
+                $formRequest->rules(),
+                $formRequest->messages(),
+            );
+            $data = $validator->validate();
+            $data['status'] = 'completo';
+        }
+
+        $data = $this->handleFileUploads($request, $data, $student);
+        unset($data['_action']);
+
+        $student->update($data);
+
+        if ($action === 'draft') {
+            return redirect()->route('students.index')
+                ->with('success', 'Borrador actualizado exitosamente.');
+        }
+
+        return redirect()->route('students.show', $student)
+            ->with('success', 'Expediente actualizado exitosamente.');
+    }
+
+    public function destroy(Student $student): RedirectResponse
+    {
+        $student->delete();
+
+        return redirect()->route('students.index')
+            ->with('success', 'Expediente eliminado exitosamente.');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function formOptions(): array
+    {
+        return [
+            'genderOptions' => $this->enumToOptions(Gender::cases()),
+            'bloodTypeOptions' => $this->enumToOptions(BloodType::cases()),
+            'medicalInstitutionOptions' => $this->enumToOptions(MedicalInstitution::cases()),
+            'disabilityOptions' => $this->enumToOptions(DisabilityType::cases()),
+            'kinshipOptions' => $this->enumToOptions(Kinship::cases()),
+            'communicationOptions' => $this->enumToOptions(CommunicationType::cases()),
+            'literacyOptions' => $this->enumToOptions(LiteracyLevel::cases()),
+            'autonomyOptions' => $this->enumToOptions(AutonomySkill::cases()),
+            'statusOptions' => $this->enumToOptions(StudentStatus::cases()),
+            'groupOptions' => Group::query()
+                ->orderBy('nombre_grupo')
+                ->get(['id', 'nombre_grupo'])
+                ->map(fn (Group $g) => ['value' => $g->nombre_grupo, 'label' => $g->nombre_grupo])
+                ->values()
+                ->all(),
+        ];
+    }
+
+    /**
+     * Validate draft with minimal rules (only type checks, no required).
+     *
+     * @return array<string, mixed>
+     */
+    private function validateDraft(Request $request): array
+    {
+        return $request->validate([
+            'curp' => ['nullable', 'string', 'max:18'],
+            'nombre_completo' => ['nullable', 'string', 'max:255'],
+            'apellido_paterno' => ['nullable', 'string', 'max:255'],
+            'apellido_materno' => ['nullable', 'string', 'max:255'],
+            'fecha_nacimiento' => ['nullable', 'date'],
+            'nacionalidad' => ['nullable', 'string', 'max:100'],
+            'entidad_federativa' => ['nullable', 'string', 'max:100'],
+            'genero' => ['nullable', 'string'],
+            'nss' => ['nullable', 'string', 'max:20'],
+            'institucion_medica' => ['nullable', 'string'],
+            'tipo_sangre' => ['nullable', 'string'],
+            'discapacidad' => ['nullable', 'string'],
+            'diagnostico_medico' => ['nullable', 'string', 'max:2000'],
+            'comorbilidades' => ['nullable', 'string', 'max:2000'],
+            'alergias_graves' => ['nullable', 'string', 'max:1000'],
+            'uso_aparatos' => ['nullable', 'string', 'max:500'],
+            'medicacion_nombre' => ['nullable', 'string', 'max:255'],
+            'medicacion_dosis' => ['nullable', 'string', 'max:255'],
+            'medicacion_horario' => ['nullable', 'string', 'max:255'],
+            'alerta_medica' => ['nullable', 'string', 'max:2000'],
+            'tutor_nombre' => ['nullable', 'string', 'max:255'],
+            'tutor_apellido_paterno' => ['nullable', 'string', 'max:255'],
+            'tutor_apellido_materno' => ['nullable', 'string', 'max:255'],
+            'tutor_parentesco' => ['nullable', 'string'],
+            'tel_emergencia_1' => ['nullable', 'string', 'max:15'],
+            'tel_emergencia_2' => ['nullable', 'string', 'max:15'],
+            'correo_tutor' => ['nullable', 'email', 'max:255'],
+            'domicilio_calle' => ['nullable', 'string', 'max:255'],
+            'domicilio_numero' => ['nullable', 'string', 'max:20'],
+            'domicilio_colonia' => ['nullable', 'string', 'max:255'],
+            'domicilio_municipio' => ['nullable', 'string', 'max:255'],
+            'domicilio_estado' => ['nullable', 'string', 'max:100'],
+            'domicilio_cp' => ['nullable', 'string', 'max:5'],
+            'comunicacion_tipo' => ['nullable', 'string'],
+            'nivel_lectoescritura' => ['nullable', 'string'],
+            'habilidades_autonomia' => ['nullable', 'array'],
+            'habilidades_autonomia.*' => ['nullable', 'string'],
+            'intereses_alumnos' => ['nullable', 'string', 'max:2000'],
+            'detonantes_conducta' => ['nullable', 'string', 'max:2000'],
+            'estatus_alumno' => ['nullable', 'string'],
+            'grado_grupo' => ['nullable', 'string', 'max:20'],
+            'fecha_ingreso' => ['nullable', 'date'],
+            'fotografia' => ['nullable', 'image', 'max:5120'],
+            'doc_acta_nacimiento' => ['nullable', 'file', 'mimes:pdf', 'max:5120'],
+            'curp_alumno_doc' => ['nullable', 'file', 'mimes:pdf', 'max:5120'],
+            'doc_cert_discapacidad' => ['nullable', 'file', 'mimes:pdf', 'max:5120'],
+            'nss_original_doc' => ['nullable', 'file', 'mimes:pdf', 'max:5120'],
+            'comprobante_domicilio_doc' => ['nullable', 'file', 'mimes:pdf', 'max:5120'],
+            'ine_tutor_doc' => ['nullable', 'file', 'mimes:pdf', 'max:5120'],
         ]);
+    }
 
-        $student = new Student($validated);
-
-        // Manejo de Archivos (Privacidad Total)
-        $files = [
-            'doc_acta_nacimiento' => 'birth_certificate_path',
-            'curp_alumno' => 'curp_path',
-            'doc_cert_discapacidad' => 'disability_certificate_path',
-            // ... mapear el resto
+    /**
+     * Handle file uploads and return updated data array.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function handleFileUploads(Request $request, array $data, ?Student $student = null): array
+    {
+        $fileFields = [
+            'fotografia' => 'fotografia_url',
+            'doc_acta_nacimiento' => 'doc_acta_nacimiento',
+            'curp_alumno_doc' => 'curp_alumno_doc',
+            'doc_cert_discapacidad' => 'doc_cert_discapacidad',
+            'nss_original_doc' => 'nss_original_doc',
+            'comprobante_domicilio_doc' => 'comprobante_domicilio_doc',
+            'ine_tutor_doc' => 'ine_tutor_doc',
         ];
 
-        foreach ($files as $inputName => $dbColumn) {
+        foreach ($fileFields as $inputName => $columnName) {
+            unset($data[$inputName]);
+
             if ($request->hasFile($inputName)) {
-                // Guardamos en disco privado 'students' (configurar en filesystems.php)
-                $path = $request->file($inputName)->store('students_docs', 'local');
-                $student->$dbColumn = $path;
+                $path = $request->file($inputName)->store("students/{$inputName}", 'public');
+                $data[$columnName] = $path;
             }
         }
 
-        $student->save();
+        return $data;
+    }
 
-        return redirect()->route('students.index')->with('success', 'Expediente creado correctamente.');
+    /**
+     * @param  array<\BackedEnum>  $cases
+     * @return array<int, array{value: string, label: string}>
+     */
+    private function enumToOptions(array $cases): array
+    {
+        return array_map(fn ($case) => [
+            'value' => $case->value,
+            'label' => $case->label(),
+        ], $cases);
     }
 }

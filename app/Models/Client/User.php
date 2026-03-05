@@ -2,9 +2,12 @@
 
 namespace App\Models\Client;
 
+use App\Enums\SystemRole;
 use Database\Factories\UserFactory;
 use Illuminate\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -17,9 +20,14 @@ class User extends Authenticatable
 
     protected $fillable = [
         'name',
+        'apellido_paterno',
+        'apellido_materno',
         'email',
         'password',
         'email_verified_at',
+        'rol_sistema',
+        'grupo_asignado_id',
+        'fotografia_url',
     ];
 
     protected $hidden = [
@@ -32,6 +40,17 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'rol_sistema' => SystemRole::class,
         ];
+    }
+
+    public function grupoAsignado(): BelongsTo
+    {
+        return $this->belongsTo(Group::class, 'grupo_asignado_id');
+    }
+
+    public function alumnos(): HasMany
+    {
+        return $this->hasMany(Student::class, 'tutor_user_id');
     }
 }

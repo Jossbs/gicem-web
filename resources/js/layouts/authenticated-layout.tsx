@@ -22,8 +22,9 @@ interface AuthUser {
 const navLinks = [
     { label: 'Inicio', href: '/dashboard' },
     { label: 'Alumnos', href: '/students' },
-    { label: 'Grupos', href: '#' },
-    { label: 'Personal', href: '#' },
+    { label: 'Grupos', href: '/groups' },
+    { label: 'Personal', href: '/staff' },
+    { label: 'Tutores', href: '/guardians' },
 ];
 
 function getInitials(name: string): string {

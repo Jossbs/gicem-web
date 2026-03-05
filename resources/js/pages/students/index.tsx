@@ -1,3 +1,14 @@
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -19,18 +30,31 @@ import {
 } from '@/components/ui/table';
 import AuthenticatedLayout from '@/layouts/authenticated-layout';
 import { Head, Link, router } from '@inertiajs/react';
-import { ArrowLeft, Eye, Plus, Search } from 'lucide-react';
+import {
+    ArrowLeft,
+    ChevronDown,
+    ChevronUp,
+    Eye,
+    FileEdit,
+    Pencil,
+    Plus,
+    Search,
+    Trash2,
+} from 'lucide-react';
 import { type ReactNode, useState } from 'react';
 
 interface Student {
     id: number;
-    curp: string;
-    nombre_completo: string;
-    apellido_paterno: string;
-    apellido_materno: string;
-    discapacidad: string;
+    curp: string | null;
+    nombre_completo: string | null;
+    apellido_paterno: string | null;
+    apellido_materno: string | null;
+    discapacidad: string | null;
     grado_grupo: string | null;
-    estatus_alumno: string;
+    estatus_alumno: string | null;
+    status: string;
+    created_at: string;
+    updated_at: string;
 }
 
 interface EnumOption {
@@ -49,6 +73,7 @@ interface PaginatedData<T> {
 
 interface Props {
     students: PaginatedData<Student>;
+    drafts: Student[];
     filters: {
         search?: string;
         discapacidad?: string;
@@ -67,24 +92,17 @@ const statusColors: Record<string, string> = {
 };
 
 const statusLabels: Record<string, string> = {
-    activo: 'Activo',
-    baja_temporal: 'Baja temporal',
-    egresado: 'Egresado',
+    activo: 'Activo', baja_temporal: 'Baja temporal', egresado: 'Egresado',
 };
 
 const disabilityLabels: Record<string, string> = {
-    intelectual: 'Intelectual',
-    motriz: 'Motriz',
-    visual: 'Visual',
-    auditiva: 'Auditiva',
-    psicosocial: 'Psicosocial',
-    multiple: 'Múltiple',
-    tea_autismo: 'TEA / Autismo',
-    otra: 'Otra',
+    intelectual: 'Intelectual', motriz: 'Motriz', visual: 'Visual', auditiva: 'Auditiva',
+    psicosocial: 'Psicosocial', multiple: 'Múltiple', tea_autismo: 'TEA / Autismo', otra: 'Otra',
 };
 
-function StudentsIndex({ students, filters, disabilityOptions, statusOptions, groupOptions }: Props) {
+function StudentsIndex({ students, drafts, filters, disabilityOptions, statusOptions, groupOptions }: Props) {
     const [search, setSearch] = useState(filters.search ?? '');
+    const [draftsOpen, setDraftsOpen] = useState(drafts.length > 0);
 
     function applyFilters(newFilters: Record<string, string | undefined>) {
         router.get(
@@ -99,11 +117,14 @@ function StudentsIndex({ students, filters, disabilityOptions, statusOptions, gr
         applyFilters({ search });
     }
 
+    function formatDate(dateStr: string): string {
+        return new Date(dateStr).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
     return (
         <>
             <Head title="Directorio de Alumnos" />
 
-            {/* Back link */}
             <Link
                 href="/dashboard"
                 className="mb-6 inline-flex items-center gap-1.5 text-xs font-semibold tracking-[0.1em] text-muted-foreground transition-colors hover:text-foreground"
@@ -130,11 +151,81 @@ function StudentsIndex({ students, filters, disabilityOptions, statusOptions, gr
                 </Button>
             </div>
 
+            {/* Borradores */}
+            {drafts.length > 0 && (
+                <Card className="mb-6 py-0 shadow-sm">
+                    <button
+                        type="button"
+                        onClick={() => setDraftsOpen(!draftsOpen)}
+                        className="flex w-full items-center justify-between bg-preventive/8 px-5 py-3 text-left transition-colors hover:bg-preventive/12"
+                    >
+                        <span className="flex items-center gap-2">
+                            <FileEdit className="size-4 text-preventive-foreground" />
+                            <span className="text-[11px] font-bold tracking-[0.1em] text-preventive-foreground">
+                                BORRADORES PENDIENTES ({drafts.length})
+                            </span>
+                        </span>
+                        {draftsOpen ? <ChevronUp className="size-4 text-preventive-foreground" /> : <ChevronDown className="size-4 text-preventive-foreground" />}
+                    </button>
+                    {draftsOpen && (
+                        <CardContent className="px-5 py-4">
+                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                                {drafts.map((draft) => {
+                                    const name = [draft.apellido_paterno, draft.apellido_materno].filter(Boolean).join(' ') +
+                                        (draft.nombre_completo ? `, ${draft.nombre_completo}` : '');
+                                    return (
+                                        <div key={draft.id} className="flex flex-col rounded-lg border border-dashed border-preventive/30 bg-preventive/4 p-4">
+                                            <p className="text-sm font-medium text-foreground">
+                                                {name || 'Sin nombre'}
+                                            </p>
+                                            <p className="mt-1 text-xs text-muted-foreground">
+                                                Creado: {formatDate(draft.created_at)}
+                                            </p>
+                                            <div className="mt-3 flex gap-2">
+                                                <Button size="sm" className="h-8 flex-1 gap-1.5 text-[10px] font-semibold tracking-[0.05em]" asChild>
+                                                    <Link href={`/students/${draft.id}/edit`}>
+                                                        <Pencil className="size-3" />
+                                                        Continuar
+                                                    </Link>
+                                                </Button>
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                        <Button variant="ghost" size="sm" className="h-8 text-destructive hover:text-destructive">
+                                                            <Trash2 className="size-3.5" />
+                                                        </Button>
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>Eliminar borrador</AlertDialogTitle>
+                                                            <AlertDialogDescription>
+                                                                Se eliminará permanentemente este borrador. Esta acción no se puede deshacer.
+                                                            </AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                            <AlertDialogAction
+                                                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                                                onClick={() => router.delete(`/students/${draft.id}`)}
+                                                            >
+                                                                Eliminar
+                                                            </AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </CardContent>
+                    )}
+                </Card>
+            )}
+
             {/* Filters */}
-            <Card className="mb-6 shadow-sm">
-                <CardContent className="px-5 py-4">
+            <Card className="mb-6 py-0 shadow-sm">
+                <CardContent className="px-4 py-3">
                     <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-                        {/* Search */}
                         <form onSubmit={handleSearch} className="relative flex-1">
                             <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
                             <Input
@@ -144,8 +235,6 @@ function StudentsIndex({ students, filters, disabilityOptions, statusOptions, gr
                                 className="h-10 pl-9"
                             />
                         </form>
-
-                        {/* Filter selects */}
                         <div className="flex flex-wrap gap-3">
                             <Select
                                 value={filters.grupo ?? 'all'}
@@ -161,7 +250,6 @@ function StudentsIndex({ students, filters, disabilityOptions, statusOptions, gr
                                     ))}
                                 </SelectContent>
                             </Select>
-
                             <Select
                                 value={filters.discapacidad ?? 'all'}
                                 onValueChange={(v) => applyFilters({ discapacidad: v === 'all' ? undefined : v })}
@@ -176,7 +264,6 @@ function StudentsIndex({ students, filters, disabilityOptions, statusOptions, gr
                                     ))}
                                 </SelectContent>
                             </Select>
-
                             <Select
                                 value={filters.estatus ?? 'all'}
                                 onValueChange={(v) => applyFilters({ estatus: v === 'all' ? undefined : v })}
@@ -197,26 +284,16 @@ function StudentsIndex({ students, filters, disabilityOptions, statusOptions, gr
             </Card>
 
             {/* Table */}
-            <Card className="shadow-sm">
+            <Card className="py-0 shadow-sm">
                 <div className="overflow-x-auto">
                     <Table>
                         <TableHeader>
                             <TableRow className="bg-primary hover:bg-primary dark:bg-[oklch(0.28_0.06_9.01)] dark:hover:bg-[oklch(0.28_0.06_9.01)]">
-                                <TableHead className="text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
-                                    NOMBRE DEL ALUMNO
-                                </TableHead>
-                                <TableHead className="text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
-                                    DISCAPACIDAD PRIMARIA
-                                </TableHead>
-                                <TableHead className="text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
-                                    GRADO / GRUPO
-                                </TableHead>
-                                <TableHead className="text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
-                                    ESTATUS
-                                </TableHead>
-                                <TableHead className="text-right text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
-                                    ACCIONES
-                                </TableHead>
+                                <TableHead className="text-[11px] font-bold tracking-[0.1em] text-primary-foreground">NOMBRE DEL ALUMNO</TableHead>
+                                <TableHead className="text-[11px] font-bold tracking-[0.1em] text-primary-foreground">DISCAPACIDAD PRIMARIA</TableHead>
+                                <TableHead className="text-[11px] font-bold tracking-[0.1em] text-primary-foreground">GRADO / GRUPO</TableHead>
+                                <TableHead className="text-[11px] font-bold tracking-[0.1em] text-primary-foreground">ESTATUS</TableHead>
+                                <TableHead className="text-right text-[11px] font-bold tracking-[0.1em] text-primary-foreground">ACCIONES</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -233,7 +310,7 @@ function StudentsIndex({ students, filters, disabilityOptions, statusOptions, gr
                                             {student.apellido_paterno} {student.apellido_materno}, {student.nombre_completo}
                                         </TableCell>
                                         <TableCell>
-                                            {disabilityLabels[student.discapacidad] ?? student.discapacidad}
+                                            {student.discapacidad ? (disabilityLabels[student.discapacidad] ?? student.discapacidad) : '—'}
                                         </TableCell>
                                         <TableCell>
                                             {student.grado_grupo ?? <span className="text-muted-foreground">Sin asignar</span>}
@@ -241,17 +318,45 @@ function StudentsIndex({ students, filters, disabilityOptions, statusOptions, gr
                                         <TableCell>
                                             <Badge
                                                 variant="outline"
-                                                className={`text-[10px] font-semibold tracking-wider ${statusColors[student.estatus_alumno] ?? ''}`}
+                                                className={`text-[10px] font-semibold tracking-wider ${statusColors[student.estatus_alumno ?? ''] ?? ''}`}
                                             >
-                                                {statusLabels[student.estatus_alumno] ?? student.estatus_alumno}
+                                                {statusLabels[student.estatus_alumno ?? ''] ?? student.estatus_alumno}
                                             </Badge>
                                         </TableCell>
                                         <TableCell className="text-right">
-                                            <Button variant="ghost" size="sm" className="size-8 p-0" asChild>
-                                                <Link href={`/students/${student.id}`}>
-                                                    <Eye className="size-4" />
-                                                </Link>
-                                            </Button>
+                                            <div className="flex items-center justify-end gap-1">
+                                                <Button variant="ghost" size="sm" className="size-8 p-0" asChild>
+                                                    <Link href={`/students/${student.id}`}>
+                                                        <Eye className="size-4" />
+                                                    </Link>
+                                                </Button>
+                                                <Button variant="ghost" size="sm" className="size-8 p-0" asChild>
+                                                    <Link href={`/students/${student.id}/edit`}>
+                                                        <Pencil className="size-4" />
+                                                    </Link>
+                                                </Button>
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                        <Button variant="ghost" size="sm" className="size-8 p-0 text-destructive hover:text-destructive">
+                                                            <Trash2 className="size-4" />
+                                                        </Button>
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>Eliminar expediente</AlertDialogTitle>
+                                                            <AlertDialogDescription>
+                                                                Se eliminará permanentemente el expediente de {student.nombre_completo} {student.apellido_paterno}. Esta acción no se puede deshacer.
+                                                            </AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                            <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => router.delete(`/students/${student.id}`)}>
+                                                                Eliminar
+                                                            </AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
+                                            </div>
                                         </TableCell>
                                     </TableRow>
                                 ))

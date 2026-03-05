@@ -2,8 +2,18 @@
 
 namespace App\Models\Client;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Enums\BloodType;
+use App\Enums\CommunicationType;
+use App\Enums\DisabilityType;
+use App\Enums\Gender;
+use App\Enums\Kinship;
+use App\Enums\LiteracyLevel;
+use App\Enums\MedicalInstitution;
+use App\Enums\StudentStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
 
 class Student extends Model
 {
@@ -11,30 +21,77 @@ class Student extends Model
 
     protected $table = 'client.students';
 
-    protected $fillable = [
-        'status', 'first_name', 'paternal_surname', 'maternal_surname', 'curp',
-        'birth_date', 'nationality', 'birth_state', 'gender', 'photo_path',
-        'birth_certificate_path', 'curp_path', 'nss', 'nss_file_path',
-        'disability_certificate_path', 'medical_institution', 'blood_type',
-        'primary_disability', 'clinical_diagnosis', 'comorbidities',
-        'severe_allergies', 'technical_aids', 'school_medication', 'medical_alert',
-        'address_street', 'address_number', 'address_colony', 'address_zip_code',
-        'guardian_name', 'guardian_relationship', 'guardian_email',
-        'emergency_phone_1', 'emergency_phone_2', 'address_proof_path',
-        'guardian_ine_path', 'communication_style', 'literacy_level',
-        'interests', 'behavioral_triggers', 'autonomy_skills',
-        'enrollment_status', 'admission_date', 'group_id'
+    protected $guarded = [];
+
+    protected $appends = [
+        'fotografia_display_url',
+        'doc_acta_nacimiento_url',
+        'curp_alumno_doc_url',
+        'doc_cert_discapacidad_url',
+        'nss_original_doc_url',
+        'comprobante_domicilio_doc_url',
+        'ine_tutor_doc_url',
     ];
 
-    protected $casts = [
-        'birth_date' => 'date',
-        'admission_date' => 'date',
-        'school_medication' => 'array', // Si decides guardar dosis/horario como JSON
-    ];
-
-    // Helper para obtener nombre completo
-    public function getFullNameAttribute()
+    protected function casts(): array
     {
-        return "{$this->first_name} {$this->paternal_surname} {$this->maternal_surname}";
+        return [
+            'fecha_nacimiento' => 'date',
+            'fecha_ingreso' => 'date',
+            'genero' => Gender::class,
+            'institucion_medica' => MedicalInstitution::class,
+            'tipo_sangre' => BloodType::class,
+            'discapacidad' => DisabilityType::class,
+            'tutor_parentesco' => Kinship::class,
+            'comunicacion_tipo' => CommunicationType::class,
+            'nivel_lectoescritura' => LiteracyLevel::class,
+            'habilidades_autonomia' => 'array',
+            'estatus_alumno' => StudentStatus::class,
+        ];
+    }
+
+    public function tutorUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'tutor_user_id');
+    }
+
+    public function getNombreCompletoDisplayAttribute(): string
+    {
+        return "{$this->apellido_paterno} {$this->apellido_materno}, {$this->nombre_completo}";
+    }
+
+    public function getFotografiaDisplayUrlAttribute(): ?string
+    {
+        return $this->fotografia_url ? Storage::url($this->fotografia_url) : null;
+    }
+
+    public function getDocActaNacimientoUrlAttribute(): ?string
+    {
+        return $this->doc_acta_nacimiento ? Storage::url($this->doc_acta_nacimiento) : null;
+    }
+
+    public function getCurpAlumnoDocUrlAttribute(): ?string
+    {
+        return $this->curp_alumno_doc ? Storage::url($this->curp_alumno_doc) : null;
+    }
+
+    public function getDocCertDiscapacidadUrlAttribute(): ?string
+    {
+        return $this->doc_cert_discapacidad ? Storage::url($this->doc_cert_discapacidad) : null;
+    }
+
+    public function getNssOriginalDocUrlAttribute(): ?string
+    {
+        return $this->nss_original_doc ? Storage::url($this->nss_original_doc) : null;
+    }
+
+    public function getComprobanteDomicilioDocUrlAttribute(): ?string
+    {
+        return $this->comprobante_domicilio_doc ? Storage::url($this->comprobante_domicilio_doc) : null;
+    }
+
+    public function getIneTutorDocUrlAttribute(): ?string
+    {
+        return $this->ine_tutor_doc ? Storage::url($this->ine_tutor_doc) : null;
     }
 }

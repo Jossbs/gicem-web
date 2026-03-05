@@ -27,8 +27,8 @@ class StoreStudentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // Paso 1 — Datos generales
-            'curp' => ['required', 'string', 'size:18', 'regex:/^[A-Z]{4}\d{6}[HM][A-Z]{5}[A-Z0-9]\d$/i', 'unique:client.students,curp'],
+            // Sección 1 — Identificación y Datos Generales
+            'curp' => ['required', 'string', 'size:18', 'regex:/^[A-Z]{4}\d{6}[HM][A-Z]{5}[A-Z0-9]\d$/i', Rule::unique(\App\Models\Client\Student::class, 'curp')],
             'nombre_completo' => ['required', 'string', 'max:255'],
             'apellido_paterno' => ['required', 'string', 'max:255'],
             'apellido_materno' => ['required', 'string', 'max:255'],
@@ -37,10 +37,8 @@ class StoreStudentRequest extends FormRequest
             'entidad_federativa' => ['required', 'string', 'max:100'],
             'genero' => ['required', Rule::enum(Gender::class)],
             'fotografia' => ['nullable', 'image', 'max:5120'],
-            'doc_acta_nacimiento' => ['nullable', 'file', 'mimes:pdf', 'max:5120'],
-            'curp_alumno_doc' => ['nullable', 'file', 'mimes:pdf', 'max:5120'],
 
-            // Paso 2 — Salud
+            // Sección 2 — Perfil de Salud
             'nss' => ['nullable', 'string', 'max:20'],
             'institucion_medica' => ['required', Rule::enum(MedicalInstitution::class)],
             'tipo_sangre' => ['required', Rule::enum(BloodType::class)],
@@ -56,7 +54,7 @@ class StoreStudentRequest extends FormRequest
             'doc_cert_discapacidad' => ['nullable', 'file', 'mimes:pdf', 'max:5120'],
             'nss_original_doc' => ['nullable', 'file', 'mimes:pdf', 'max:5120'],
 
-            // Paso 3 — Familia / Tutor
+            // Sección 3 — Entorno Familiar
             'tutor_nombre' => ['required', 'string', 'max:255'],
             'tutor_apellido_paterno' => ['required', 'string', 'max:255'],
             'tutor_apellido_materno' => ['required', 'string', 'max:255'],
@@ -73,7 +71,7 @@ class StoreStudentRequest extends FormRequest
             'comprobante_domicilio_doc' => ['nullable', 'file', 'mimes:pdf', 'max:5120'],
             'ine_tutor_doc' => ['nullable', 'file', 'mimes:pdf', 'max:5120'],
 
-            // Paso 4 — Psicopedagógico
+            // Sección 4 — Psicopedagógico
             'comunicacion_tipo' => ['required', Rule::enum(CommunicationType::class)],
             'nivel_lectoescritura' => ['required', Rule::enum(LiteracyLevel::class)],
             'habilidades_autonomia' => ['required', 'array', 'min:1'],
@@ -81,10 +79,12 @@ class StoreStudentRequest extends FormRequest
             'intereses_alumnos' => ['required', 'string', 'max:2000'],
             'detonantes_conducta' => ['required', 'string', 'max:2000'],
 
-            // Paso 5 — Estatus
+            // Sección 5 — Control Administrativo
             'estatus_alumno' => ['required', Rule::enum(StudentStatus::class)],
             'grado_grupo' => ['nullable', 'string', 'max:20'],
             'fecha_ingreso' => ['required', 'date'],
+            'doc_acta_nacimiento' => ['nullable', 'file', 'mimes:pdf', 'max:5120'],
+            'curp_alumno_doc' => ['nullable', 'file', 'mimes:pdf', 'max:5120'],
         ];
     }
 
@@ -110,6 +110,16 @@ class StoreStudentRequest extends FormRequest
             'fotografia.max' => 'La fotografía no debe pesar más de 5 MB.',
             'doc_acta_nacimiento.mimes' => 'El acta de nacimiento debe ser un archivo PDF.',
             'doc_acta_nacimiento.max' => 'El acta de nacimiento no debe pesar más de 5 MB.',
+            'curp_alumno_doc.mimes' => 'El documento CURP debe ser un archivo PDF.',
+            'curp_alumno_doc.max' => 'El documento CURP no debe pesar más de 5 MB.',
+            'doc_cert_discapacidad.mimes' => 'El certificado de discapacidad debe ser un archivo PDF.',
+            'doc_cert_discapacidad.max' => 'El certificado de discapacidad no debe pesar más de 5 MB.',
+            'nss_original_doc.mimes' => 'El documento del NSS debe ser un archivo PDF.',
+            'nss_original_doc.max' => 'El documento del NSS no debe pesar más de 5 MB.',
+            'comprobante_domicilio_doc.mimes' => 'El comprobante de domicilio debe ser un archivo PDF.',
+            'comprobante_domicilio_doc.max' => 'El comprobante de domicilio no debe pesar más de 5 MB.',
+            'ine_tutor_doc.mimes' => 'La INE del tutor debe ser un archivo PDF.',
+            'ine_tutor_doc.max' => 'La INE del tutor no debe pesar más de 5 MB.',
             'institucion_medica.required' => 'La institución médica es obligatoria.',
             'tipo_sangre.required' => 'El tipo de sangre es obligatorio.',
             'discapacidad.required' => 'El tipo de discapacidad es obligatorio.',
