@@ -23,8 +23,11 @@ class GroupController extends Controller
     {
         Gate::authorize('groups.access');
 
+        $user = $request->user();
+
         $groups = Group::query()
             ->with('docente:id,name,apellido_paterno,apellido_materno')
+            ->when($user->isDocente(), fn ($q) => $q->where('docente_id', $user->id))
             ->when($request->input('search'), function ($query, $search): void {
                 $query->where(function ($q) use ($search): void {
                     $q->where('nombre_grupo', 'ilike', "%{$search}%")
@@ -94,7 +97,12 @@ class GroupController extends Controller
 
     public function show(Group $group): Response
     {
-        Gate::authorize('groups.manage');
+        Gate::authorize('groups.access');
+
+        $user = request()->user();
+        if ($user->isDocente() && $group->docente_id !== $user->id) {
+            abort(403);
+        }
 
         $group->load('docente:id,name,apellido_paterno,apellido_materno');
 

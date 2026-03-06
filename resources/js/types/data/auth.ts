@@ -10,6 +10,7 @@ export type Permissions = {
     'staff.access': boolean;
     'guardians.edit': boolean;
     'guardians.create-account': boolean;
+    'anuncios.delete': boolean;
 };
 
 export type Auth = {

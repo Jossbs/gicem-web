@@ -24,6 +24,7 @@ import {
     FileText,
     FolderOpen,
     Heart,
+    MapPin,
     Pencil,
     Trash2,
     Users,
@@ -31,7 +32,7 @@ import {
     Clock,
     ExternalLink,
 } from 'lucide-react';
-import { type ReactNode, useState } from 'react';
+import { type ReactNode, useMemo, useState } from 'react';
 
 interface Student {
     id: number;
@@ -140,9 +141,27 @@ function getInitials(student: Student): string {
     return (first + last).toUpperCase();
 }
 
+function buildFullAddress(student: Student): string | null {
+    const parts = [
+        [student.domicilio_calle, student.domicilio_numero].filter(Boolean).join(' '),
+        student.domicilio_colonia,
+        student.domicilio_municipio,
+        student.domicilio_estado,
+        student.domicilio_cp,
+    ].filter(Boolean);
+
+    return parts.length > 0 ? parts.join(', ') + ', México' : null;
+}
+
 function StudentsShow({ student }: { student: Student }) {
     const { auth } = usePage<{ auth: Auth }>().props;
     const can = auth.can;
+
+    const fullAddress = useMemo(() => buildFullAddress(student), [student]);
+    const mapsEmbedUrl = useMemo(
+        () => fullAddress ? `https://maps.google.com/maps?q=${encodeURIComponent(fullAddress)}&t=&z=15&ie=UTF8&iwloc=&output=embed` : null,
+        [fullAddress],
+    );
 
     const fullName = (student.nombre_completo ?? 'Sin nombre') +
         ([student.apellido_paterno, student.apellido_materno].filter(Boolean).length > 0
@@ -309,6 +328,34 @@ function StudentsShow({ student }: { student: Student }) {
                                 + (student.domicilio_estado ? `, ${student.domicilio_estado}` : '')
                                 + (student.domicilio_cp ? ` C.P. ${student.domicilio_cp}` : '') || 'No registrado' },
                         ]} />
+
+                        {mapsEmbedUrl && (
+                            <div className="mt-5">
+                                <div className="mb-2 flex items-center gap-2">
+                                    <MapPin className="size-4 text-primary" />
+                                    <p className="text-[10px] font-bold tracking-[0.1em] text-muted-foreground">UBICACIÓN</p>
+                                </div>
+                                <div className="overflow-hidden rounded-lg border">
+                                    <iframe
+                                        src={mapsEmbedUrl}
+                                        className="h-[280px] w-full border-0"
+                                        allowFullScreen
+                                        loading="lazy"
+                                        referrerPolicy="no-referrer-when-downgrade"
+                                        title="Ubicación del domicilio"
+                                    />
+                                </div>
+                                <a
+                                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress!)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
+                                >
+                                    <ExternalLink className="size-3" />
+                                    Abrir en Google Maps
+                                </a>
+                            </div>
+                        )}
                     </CollapsibleSection>
 
                     {/* Psicopedagógico */}

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\Kinship;
 use App\Enums\SystemRole;
+use App\Models\Client\Group;
 use App\Models\Client\Student;
 use App\Models\Client\User;
 use Illuminate\Http\RedirectResponse;
@@ -18,8 +19,12 @@ class GuardianController extends Controller
 {
     public function index(Request $request): Response
     {
+        $user = $request->user();
+        $docenteGroupNames = $user->isDocente() ? $user->docenteGroupNames() : null;
+
         $guardians = Student::query()
             ->with('tutorUser:id,email')
+            ->when($docenteGroupNames !== null, fn ($q) => $q->whereIn('grado_grupo', $docenteGroupNames))
             ->select([
                 'id',
                 'tutor_nombre',
@@ -66,6 +71,11 @@ class GuardianController extends Controller
 
     public function show(Student $student): Response
     {
+        $user = request()->user();
+        if ($user->isDocente()) {
+            abort_unless(in_array($student->grado_grupo, $user->docenteGroupNames()), 403);
+        }
+
         $student->load('tutorUser:id,email');
 
         return Inertia::render('guardians/show', [

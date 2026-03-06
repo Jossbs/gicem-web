@@ -50,9 +50,22 @@ class User extends Authenticatable
         return $this->belongsTo(Group::class, 'grupo_asignado_id');
     }
 
+    public function groups(): HasMany
+    {
+        return $this->hasMany(Group::class, 'docente_id');
+    }
+
     public function alumnos(): HasMany
     {
         return $this->hasMany(Student::class, 'tutor_user_id');
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function docenteGroupNames(): array
+    {
+        return $this->groups()->pluck('nombre_grupo')->all();
     }
 
     public function isAdmin(): bool

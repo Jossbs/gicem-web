@@ -4,11 +4,12 @@ namespace App\Providers;
 
 use App\Enums\Frontend\EmphasisVariant;
 use App\Enums\Frontend\ResponseStyle;
-use App\Enums\SystemRole;
 use App\Models\Client\User;
 use App\Services\PgsqlVerificationService;
 use Carbon\CarbonImmutable;
+use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -32,6 +33,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->declareMacros();
         $this->configureAuthorization();
+        $this->configureNotifications();
 
         $this->configureDatabaseConnection();
         $this->configureDefaults();
@@ -68,7 +70,7 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::define('students.delete', fn (User $user): bool => $user->isAdmin() || $user->isTrabajadorSocial());
 
-        Gate::define('groups.access', fn (User $user): bool => $user->isAdmin() || $user->isTrabajadorSocial());
+        Gate::define('groups.access', fn (User $user): bool => $user->isAdmin() || $user->isDocente());
 
         Gate::define('groups.manage', fn (User $user): bool => $user->isAdmin());
 
@@ -76,7 +78,29 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::define('guardians.edit', fn (User $user): bool => $user->isAdmin());
 
-        Gate::define('guardians.create-account', fn (User $user): bool => $user->isAdmin());
+        Gate::define('guardians.create-account', fn (User $user): bool => $user->isAdmin() || $user->isTrabajadorSocial());
+
+        Gate::define('anuncios.delete', fn (User $user): bool => $user->isAdmin() || $user->isTrabajadorSocial());
+    }
+
+    protected function configureNotifications(): void
+    {
+        ResetPassword::toMailUsing(function (User $notifiable, string $token): MailMessage {
+            $url = url(route('password.reset', [
+                'token' => $token,
+                'email' => $notifiable->getEmailForPasswordReset(),
+            ], false));
+
+            return (new MailMessage)
+                ->subject('GICEM — Invitación para acceder al sistema')
+                ->greeting("¡Hola, {$notifiable->name}!")
+                ->line('Has sido invitado a acceder al Sistema GICEM (Gestión Integral para Centros de Educación Múltiple).')
+                ->line('Haz clic en el siguiente botón para establecer tu contraseña y activar tu cuenta:')
+                ->action('Establecer mi contraseña', $url)
+                ->line('Este enlace expirará en 60 minutos.')
+                ->line('Si no esperabas esta invitación, puedes ignorar este correo.')
+                ->salutation('Atentamente, Equipo GICEM');
+        });
     }
 
     protected function configureDefaults(): void

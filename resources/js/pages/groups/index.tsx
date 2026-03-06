@@ -231,17 +231,15 @@ function GroupsIndex({ groups, filters, levelOptions, shiftOptions }: Props) {
                                 <TableHead className="text-center text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
                                     CAPACIDAD
                                 </TableHead>
-                                {can['groups.manage'] && (
-                                    <TableHead className="text-center text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
-                                        ACCIONES
-                                    </TableHead>
-                                )}
+                                <TableHead className="text-center text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
+                                    ACCIONES
+                                </TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {groups.data.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={can['groups.manage'] ? 5 : 4} className="py-16 text-center">
+                                    <TableCell colSpan={5} className="py-16 text-center">
                                         <div className="flex flex-col items-center gap-3">
                                             <div className="flex size-12 items-center justify-center rounded-full bg-muted">
                                                 <FolderOpen className="size-6 text-muted-foreground" />
@@ -289,39 +287,41 @@ function GroupsIndex({ groups, filters, levelOptions, shiftOptions }: Props) {
                                         <TableCell className="text-center">
                                             {group.students_count ?? 0} / {group.capacidad_maxima}
                                         </TableCell>
-                                        {can['groups.manage'] && (
-                                            <TableCell className="text-center">
-                                                <div className="flex items-center justify-center gap-1">
-                                                    <Button variant="ghost" size="sm" className="size-8 p-0 opacity-60 group-hover:opacity-100" asChild>
-                                                        <Link href={`/groups/${group.id}`}><Eye className="size-4" /></Link>
-                                                    </Button>
-                                                    <Button variant="ghost" size="sm" className="size-8 p-0 opacity-60 group-hover:opacity-100" asChild>
-                                                        <Link href={`/groups/${group.id}/edit`}><Pencil className="size-4" /></Link>
-                                                    </Button>
-                                                    <AlertDialog>
-                                                        <AlertDialogTrigger asChild>
-                                                            <Button variant="ghost" size="sm" className="size-8 p-0 text-destructive opacity-60 hover:text-destructive group-hover:opacity-100">
-                                                                <Trash2 className="size-4" />
-                                                            </Button>
-                                                        </AlertDialogTrigger>
-                                                        <AlertDialogContent>
-                                                            <AlertDialogHeader>
-                                                                <AlertDialogTitle>Eliminar grupo</AlertDialogTitle>
-                                                                <AlertDialogDescription>
-                                                                    Se eliminará permanentemente el grupo {group.nombre_grupo}. Esta acción no se puede deshacer.
-                                                                </AlertDialogDescription>
-                                                            </AlertDialogHeader>
-                                                            <AlertDialogFooter>
-                                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                                                <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => router.delete(`/groups/${group.id}`)}>
-                                                                    Eliminar
-                                                                </AlertDialogAction>
-                                                            </AlertDialogFooter>
-                                                        </AlertDialogContent>
-                                                    </AlertDialog>
-                                                </div>
-                                            </TableCell>
-                                        )}
+                                        <TableCell className="text-center">
+                                            <div className="flex items-center justify-center gap-1">
+                                                <Button variant="ghost" size="sm" className="size-8 p-0 opacity-60 group-hover:opacity-100" asChild>
+                                                    <Link href={`/groups/${group.id}`}><Eye className="size-4" /></Link>
+                                                </Button>
+                                                {can['groups.manage'] && (
+                                                    <>
+                                                        <Button variant="ghost" size="sm" className="size-8 p-0 opacity-60 group-hover:opacity-100" asChild>
+                                                            <Link href={`/groups/${group.id}/edit`}><Pencil className="size-4" /></Link>
+                                                        </Button>
+                                                        <AlertDialog>
+                                                            <AlertDialogTrigger asChild>
+                                                                <Button variant="ghost" size="sm" className="size-8 p-0 text-destructive opacity-60 hover:text-destructive group-hover:opacity-100">
+                                                                    <Trash2 className="size-4" />
+                                                                </Button>
+                                                            </AlertDialogTrigger>
+                                                            <AlertDialogContent>
+                                                                <AlertDialogHeader>
+                                                                    <AlertDialogTitle>Eliminar grupo</AlertDialogTitle>
+                                                                    <AlertDialogDescription>
+                                                                        Se eliminará permanentemente el grupo {group.nombre_grupo}. Esta acción no se puede deshacer.
+                                                                    </AlertDialogDescription>
+                                                                </AlertDialogHeader>
+                                                                <AlertDialogFooter>
+                                                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                                    <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => router.delete(`/groups/${group.id}`)}>
+                                                                        Eliminar
+                                                                    </AlertDialogAction>
+                                                                </AlertDialogFooter>
+                                                            </AlertDialogContent>
+                                                        </AlertDialog>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </TableCell>
                                     </TableRow>
                                 ))
                             )}

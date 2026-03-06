@@ -2,7 +2,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import AuthenticatedLayout from '@/layouts/authenticated-layout';
-import { Head, Link, router } from '@inertiajs/react';
+import { type Auth } from '@/types/data/auth';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { ArrowLeft, ChevronDown, ChevronUp, Mail, UserPlus } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
 
@@ -33,6 +34,8 @@ const kinshipLabels: Record<string, string> = {
 };
 
 function GuardiansShow({ student }: { student: StudentGuardian }) {
+    const { auth } = usePage<{ auth: Auth }>().props;
+    const can = auth.can;
     const [processing, setProcessing] = useState(false);
     const hasAccount = !!student.tutor_user_id;
 
@@ -65,63 +68,67 @@ function GuardiansShow({ student }: { student: StudentGuardian }) {
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
                 {/* Sidebar */}
                 <div className="space-y-4 lg:col-span-3">
-                    <Card className="shadow-sm">
-                        <CardContent className="px-5 py-4">
-                            <p className="mb-3 text-[11px] font-bold tracking-[0.1em] text-muted-foreground">ACCIONES</p>
-                            <Button className="h-10 w-full gap-2 text-xs font-semibold tracking-[0.1em]" asChild>
-                                <Link href={`/students/${student.id}/edit`}>
-                                    EDITAR EXPEDIENTE DEL ALUMNO
-                                </Link>
-                            </Button>
-                            <p className="mt-3 text-[10px] text-muted-foreground">
-                                Los datos del tutor se modifican desde el expediente del alumno asociado.
-                            </p>
-                        </CardContent>
-                    </Card>
+                    {can['students.edit'] && (
+                        <Card className="shadow-sm">
+                            <CardContent className="px-5 py-4">
+                                <p className="mb-3 text-[11px] font-bold tracking-[0.1em] text-muted-foreground">ACCIONES</p>
+                                <Button className="h-10 w-full gap-2 text-xs font-semibold tracking-[0.1em]" asChild>
+                                    <Link href={`/students/${student.id}/edit`}>
+                                        EDITAR EXPEDIENTE DEL ALUMNO
+                                    </Link>
+                                </Button>
+                                <p className="mt-3 text-[10px] text-muted-foreground">
+                                    Los datos del tutor se modifican desde el expediente del alumno asociado.
+                                </p>
+                            </CardContent>
+                        </Card>
+                    )}
 
-                    <Card className="shadow-sm">
-                        <CardContent className="px-5 py-4">
-                            <p className="mb-3 text-[11px] font-bold tracking-[0.1em] text-muted-foreground">CUENTA DE USUARIO</p>
+                    {can['guardians.create-account'] && (
+                        <Card className="shadow-sm">
+                            <CardContent className="px-5 py-4">
+                                <p className="mb-3 text-[11px] font-bold tracking-[0.1em] text-muted-foreground">CUENTA DE USUARIO</p>
 
-                            {hasAccount ? (
-                                <>
-                                    <div className="mb-3 flex items-center gap-2">
-                                        <Badge className="bg-affirmative text-white">Activa</Badge>
-                                        <span className="text-xs text-muted-foreground">{student.tutor_user_email}</span>
-                                    </div>
-                                    <Button
-                                        variant="outline"
-                                        className="h-10 w-full gap-2 text-xs font-semibold tracking-[0.1em]"
-                                        onClick={handleSendInvitation}
-                                        disabled={processing}
-                                    >
-                                        <Mail className="size-4" />
-                                        ENVIAR INVITACIÓN
-                                    </Button>
-                                    <p className="mt-2 text-[10px] text-muted-foreground">
-                                        Envía un correo con enlace para establecer contraseña.
-                                    </p>
-                                </>
-                            ) : (
-                                <>
-                                    <div className="mb-3">
-                                        <Badge variant="secondary">Sin cuenta</Badge>
-                                    </div>
-                                    <Button
-                                        className="h-10 w-full gap-2 text-xs font-semibold tracking-[0.1em]"
-                                        onClick={handleCreateAccount}
-                                        disabled={processing}
-                                    >
-                                        <UserPlus className="size-4" />
-                                        CREAR CUENTA
-                                    </Button>
-                                    <p className="mt-2 text-[10px] text-muted-foreground">
-                                        Crea una cuenta con el correo del tutor y envía invitación.
-                                    </p>
-                                </>
-                            )}
-                        </CardContent>
-                    </Card>
+                                {hasAccount ? (
+                                    <>
+                                        <div className="mb-3 flex items-center gap-2">
+                                            <Badge className="bg-affirmative text-white">Activa</Badge>
+                                            <span className="text-xs text-muted-foreground">{student.tutor_user_email}</span>
+                                        </div>
+                                        <Button
+                                            variant="outline"
+                                            className="h-10 w-full gap-2 text-xs font-semibold tracking-[0.1em]"
+                                            onClick={handleSendInvitation}
+                                            disabled={processing}
+                                        >
+                                            <Mail className="size-4" />
+                                            ENVIAR INVITACIÓN
+                                        </Button>
+                                        <p className="mt-2 text-[10px] text-muted-foreground">
+                                            Envía un correo con enlace para establecer contraseña.
+                                        </p>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="mb-3">
+                                            <Badge variant="secondary">Sin cuenta</Badge>
+                                        </div>
+                                        <Button
+                                            className="h-10 w-full gap-2 text-xs font-semibold tracking-[0.1em]"
+                                            onClick={handleCreateAccount}
+                                            disabled={processing}
+                                        >
+                                            <UserPlus className="size-4" />
+                                            CREAR CUENTA
+                                        </Button>
+                                        <p className="mt-2 text-[10px] text-muted-foreground">
+                                            Crea una cuenta con el correo del tutor y envía invitación.
+                                        </p>
+                                    </>
+                                )}
+                            </CardContent>
+                        </Card>
+                    )}
                 </div>
 
                 {/* Main content */}

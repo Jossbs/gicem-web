@@ -26,13 +26,18 @@ class StudentController extends Controller
 {
     public function index(Request $request): Response
     {
+        $user = $request->user();
+        $docenteGroupNames = $user->isDocente() ? $user->docenteGroupNames() : null;
+
         $drafts = Student::query()
             ->where('status', 'borrador')
+            ->when($docenteGroupNames !== null, fn ($q) => $q->whereIn('grado_grupo', $docenteGroupNames))
             ->orderByDesc('updated_at')
             ->get();
 
         $students = Student::query()
             ->where('status', 'completo')
+            ->when($docenteGroupNames !== null, fn ($q) => $q->whereIn('grado_grupo', $docenteGroupNames))
             ->when($request->input('search'), function ($query, $search): void {
                 $query->where(function ($q) use ($search): void {
                     $q->where('nombre_completo', 'ilike', "%{$search}%")
@@ -64,6 +69,7 @@ class StudentController extends Controller
             'groupOptions' => Student::query()
                 ->where('status', 'completo')
                 ->whereNotNull('grado_grupo')
+                ->when($docenteGroupNames !== null, fn ($q) => $q->whereIn('grado_grupo', $docenteGroupNames))
                 ->distinct()
                 ->pluck('grado_grupo')
                 ->sort()
@@ -116,6 +122,11 @@ class StudentController extends Controller
 
     public function show(Student $student): Response
     {
+        $user = request()->user();
+        if ($user->isDocente()) {
+            abort_unless(in_array($student->grado_grupo, $user->docenteGroupNames()), 403);
+        }
+
         $student->append($this->documentAppends());
 
         return Inertia::render('students/show', [
