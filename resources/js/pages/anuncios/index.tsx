@@ -29,7 +29,8 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import AuthenticatedLayout from '@/layouts/authenticated-layout';
-import { Head, Link, router } from '@inertiajs/react';
+import { type Auth } from '@/types/data/auth';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { ArrowLeft, Eye, FolderOpen, Plus, Search, Trash2 } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
 
@@ -95,6 +96,8 @@ const prioridadStyles: Record<string, string> = {
 };
 
 function AnunciosIndex({ anuncios, filters, alcanceOptions, prioridadOptions }: Props) {
+    const { auth } = usePage<{ auth: Auth }>().props;
+    const can = auth.can;
     const [search, setSearch] = useState(filters.search ?? '');
 
     function applyFilters(newFilters: Record<string, string | undefined>) {
@@ -322,34 +325,36 @@ function AnunciosIndex({ anuncios, filters, alcanceOptions, prioridadOptions }: 
                                                         <Eye className="size-4" />
                                                     </Link>
                                                 </Button>
-                                                <AlertDialog>
-                                                    <AlertDialogTrigger asChild>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            className="size-8 p-0 text-destructive opacity-60 hover:text-destructive group-hover:opacity-100"
-                                                        >
-                                                            <Trash2 className="size-4" />
-                                                        </Button>
-                                                    </AlertDialogTrigger>
-                                                    <AlertDialogContent>
-                                                        <AlertDialogHeader>
-                                                            <AlertDialogTitle>Eliminar anuncio</AlertDialogTitle>
-                                                            <AlertDialogDescription>
-                                                                Se eliminará permanentemente el anuncio &quot;{anuncio.asunto}&quot;. Esta acción no se puede deshacer.
-                                                            </AlertDialogDescription>
-                                                        </AlertDialogHeader>
-                                                        <AlertDialogFooter>
-                                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                                            <AlertDialogAction
-                                                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                                                onClick={() => router.delete(`/anuncios/${anuncio.id}`)}
+                                                {(can['anuncios.delete'] || anuncio.emisor?.id === auth.user.id) && (
+                                                    <AlertDialog>
+                                                        <AlertDialogTrigger asChild>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                className="size-8 p-0 text-destructive opacity-60 hover:text-destructive group-hover:opacity-100"
                                                             >
-                                                                Eliminar
-                                                            </AlertDialogAction>
-                                                        </AlertDialogFooter>
-                                                    </AlertDialogContent>
-                                                </AlertDialog>
+                                                                <Trash2 className="size-4" />
+                                                            </Button>
+                                                        </AlertDialogTrigger>
+                                                        <AlertDialogContent>
+                                                            <AlertDialogHeader>
+                                                                <AlertDialogTitle>Eliminar anuncio</AlertDialogTitle>
+                                                                <AlertDialogDescription>
+                                                                    Se eliminará permanentemente el anuncio &quot;{anuncio.asunto}&quot;. Esta acción no se puede deshacer.
+                                                                </AlertDialogDescription>
+                                                            </AlertDialogHeader>
+                                                            <AlertDialogFooter>
+                                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                                <AlertDialogAction
+                                                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                                                    onClick={() => router.delete(`/anuncios/${anuncio.id}`)}
+                                                                >
+                                                                    Eliminar
+                                                                </AlertDialogAction>
+                                                            </AlertDialogFooter>
+                                                        </AlertDialogContent>
+                                                    </AlertDialog>
+                                                )}
                                             </div>
                                         </TableCell>
                                     </TableRow>
