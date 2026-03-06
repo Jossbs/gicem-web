@@ -13,6 +13,7 @@ use App\Models\Client\Student;
 use App\Models\Client\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -20,6 +21,8 @@ class GroupController extends Controller
 {
     public function index(Request $request): Response
     {
+        Gate::authorize('groups.access');
+
         $groups = Group::query()
             ->with('docente:id,name,apellido_paterno,apellido_materno')
             ->when($request->input('search'), function ($query, $search): void {
@@ -68,6 +71,8 @@ class GroupController extends Controller
 
     public function create(): Response
     {
+        Gate::authorize('groups.manage');
+
         return Inertia::render('groups/create', [
             'levelOptions' => $this->enumToOptions(EducationLevel::cases()),
             'gradeOptions' => $this->enumToOptions(SchoolGrade::cases()),
@@ -79,6 +84,8 @@ class GroupController extends Controller
 
     public function store(StoreGroupRequest $request): RedirectResponse
     {
+        Gate::authorize('groups.manage');
+
         Group::create($request->validated());
 
         return redirect()->route('groups.index')
@@ -87,6 +94,8 @@ class GroupController extends Controller
 
     public function show(Group $group): Response
     {
+        Gate::authorize('groups.manage');
+
         $group->load('docente:id,name,apellido_paterno,apellido_materno');
 
         $students = Student::query()
@@ -105,6 +114,8 @@ class GroupController extends Controller
 
     public function edit(Group $group): Response
     {
+        Gate::authorize('groups.manage');
+
         return Inertia::render('groups/edit', [
             'group' => $group,
             'levelOptions' => $this->enumToOptions(EducationLevel::cases()),
@@ -117,6 +128,8 @@ class GroupController extends Controller
 
     public function update(UpdateGroupRequest $request, Group $group): RedirectResponse
     {
+        Gate::authorize('groups.manage');
+
         $group->update($request->validated());
 
         return redirect()->route('groups.show', $group)
@@ -125,6 +138,8 @@ class GroupController extends Controller
 
     public function destroy(Group $group): RedirectResponse
     {
+        Gate::authorize('groups.manage');
+
         $group->delete();
 
         return redirect()->route('groups.index')

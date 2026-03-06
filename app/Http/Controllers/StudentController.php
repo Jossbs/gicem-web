@@ -17,6 +17,7 @@ use App\Models\Client\Group;
 use App\Models\Client\Student;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -73,11 +74,15 @@ class StudentController extends Controller
 
     public function create(): Response
     {
+        Gate::authorize('students.create');
+
         return Inertia::render('students/create', $this->formOptions());
     }
 
     public function store(Request $request): RedirectResponse
     {
+        Gate::authorize('students.create');
+
         $action = $request->input('_action', 'finalize');
 
         if ($action === 'draft') {
@@ -120,6 +125,8 @@ class StudentController extends Controller
 
     public function edit(Student $student): Response
     {
+        Gate::authorize('students.edit');
+
         $student->append($this->documentAppends());
 
         return Inertia::render('students/edit', array_merge(
@@ -130,6 +137,8 @@ class StudentController extends Controller
 
     public function update(Request $request, Student $student): RedirectResponse
     {
+        Gate::authorize('students.edit');
+
         $action = $request->input('_action', 'finalize');
 
         if ($action === 'draft') {
@@ -164,6 +173,8 @@ class StudentController extends Controller
 
     public function destroy(Student $student): RedirectResponse
     {
+        Gate::authorize('students.delete');
+
         $student->delete();
 
         return redirect()->route('students.index')

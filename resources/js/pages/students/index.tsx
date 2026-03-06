@@ -29,7 +29,8 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import AuthenticatedLayout from '@/layouts/authenticated-layout';
-import { Head, Link, router } from '@inertiajs/react';
+import { type Auth } from '@/types/data/auth';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
     ArrowLeft,
     ChevronDown,
@@ -101,6 +102,8 @@ const disabilityLabels: Record<string, string> = {
 };
 
 function StudentsIndex({ students, drafts, filters, disabilityOptions, statusOptions, groupOptions }: Props) {
+    const { auth } = usePage<{ auth: Auth }>().props;
+    const can = auth.can;
     const [search, setSearch] = useState(filters.search ?? '');
     const [draftsOpen, setDraftsOpen] = useState(drafts.length > 0);
 
@@ -143,16 +146,18 @@ function StudentsIndex({ students, drafts, filters, disabilityOptions, statusOpt
                         Gestión de expedientes digitales del padrón escolar.
                     </p>
                 </div>
-                <Button className="h-11 gap-2 text-xs font-semibold tracking-[0.1em]" asChild>
-                    <Link href="/students/create">
-                        <Plus className="size-4" />
-                        NUEVO EXPEDIENTE
-                    </Link>
-                </Button>
+                {can['students.create'] && (
+                    <Button className="h-11 gap-2 text-xs font-semibold tracking-[0.1em]" asChild>
+                        <Link href="/students/create">
+                            <Plus className="size-4" />
+                            NUEVO EXPEDIENTE
+                        </Link>
+                    </Button>
+                )}
             </div>
 
             {/* Borradores */}
-            {drafts.length > 0 && (
+            {can['students.create'] && drafts.length > 0 && (
                 <Card className="mb-6 py-0 shadow-sm">
                     <button
                         type="button"
@@ -334,32 +339,36 @@ function StudentsIndex({ students, drafts, filters, disabilityOptions, statusOpt
                                                         <Eye className="size-4" />
                                                     </Link>
                                                 </Button>
-                                                <Button variant="ghost" size="sm" className="size-8 p-0" asChild>
-                                                    <Link href={`/students/${student.id}/edit`}>
-                                                        <Pencil className="size-4" />
-                                                    </Link>
-                                                </Button>
-                                                <AlertDialog>
-                                                    <AlertDialogTrigger asChild>
-                                                        <Button variant="ghost" size="sm" className="size-8 p-0 text-destructive hover:text-destructive">
-                                                            <Trash2 className="size-4" />
-                                                        </Button>
-                                                    </AlertDialogTrigger>
-                                                    <AlertDialogContent>
-                                                        <AlertDialogHeader>
-                                                            <AlertDialogTitle>Eliminar expediente</AlertDialogTitle>
-                                                            <AlertDialogDescription>
-                                                                Se eliminará permanentemente el expediente de {student.nombre_completo} {student.apellido_paterno}. Esta acción no se puede deshacer.
-                                                            </AlertDialogDescription>
-                                                        </AlertDialogHeader>
-                                                        <AlertDialogFooter>
-                                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                                            <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => router.delete(`/students/${student.id}`)}>
-                                                                Eliminar
-                                                            </AlertDialogAction>
-                                                        </AlertDialogFooter>
-                                                    </AlertDialogContent>
-                                                </AlertDialog>
+                                                {can['students.edit'] && (
+                                                    <Button variant="ghost" size="sm" className="size-8 p-0" asChild>
+                                                        <Link href={`/students/${student.id}/edit`}>
+                                                            <Pencil className="size-4" />
+                                                        </Link>
+                                                    </Button>
+                                                )}
+                                                {can['students.delete'] && (
+                                                    <AlertDialog>
+                                                        <AlertDialogTrigger asChild>
+                                                            <Button variant="ghost" size="sm" className="size-8 p-0 text-destructive hover:text-destructive">
+                                                                <Trash2 className="size-4" />
+                                                            </Button>
+                                                        </AlertDialogTrigger>
+                                                        <AlertDialogContent>
+                                                            <AlertDialogHeader>
+                                                                <AlertDialogTitle>Eliminar expediente</AlertDialogTitle>
+                                                                <AlertDialogDescription>
+                                                                    Se eliminará permanentemente el expediente de {student.nombre_completo} {student.apellido_paterno}. Esta acción no se puede deshacer.
+                                                                </AlertDialogDescription>
+                                                            </AlertDialogHeader>
+                                                            <AlertDialogFooter>
+                                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                                <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => router.delete(`/students/${student.id}`)}>
+                                                                    Eliminar
+                                                                </AlertDialogAction>
+                                                            </AlertDialogFooter>
+                                                        </AlertDialogContent>
+                                                    </AlertDialog>
+                                                )}
                                             </div>
                                         </TableCell>
                                     </TableRow>

@@ -17,8 +17,8 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::resource('students', StudentController::class);
     Route::resource('groups', GroupController::class);
-    Route::resource('staff', StaffController::class);
-    Route::post('/staff/{staff}/send-invitation', [StaffController::class, 'sendInvitation'])->name('staff.send-invitation');
+    Route::resource('staff', StaffController::class)->middleware('role:admin');
+    Route::post('/staff/{staff}/send-invitation', [StaffController::class, 'sendInvitation'])->name('staff.send-invitation')->middleware('role:admin');
     Route::resource('anuncios', AnuncioController::class)->except(['edit', 'update']);
     Route::get('/guardians', [GuardianController::class, 'index'])->name('guardians.index');
     Route::get('/guardians/{student}', [GuardianController::class, 'show'])->name('guardians.show');

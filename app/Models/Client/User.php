@@ -55,6 +55,21 @@ class User extends Authenticatable
         return $this->hasMany(Student::class, 'tutor_user_id');
     }
 
+    public function isAdmin(): bool
+    {
+        return $this->rol_sistema === SystemRole::Admin;
+    }
+
+    public function isDocente(): bool
+    {
+        return $this->rol_sistema === SystemRole::Docente;
+    }
+
+    public function isTrabajadorSocial(): bool
+    {
+        return $this->rol_sistema === SystemRole::TrabajadorSocial;
+    }
+
     public function getFotografiaDisplayUrlAttribute(): ?string
     {
         return $this->fotografia_url ? Storage::url($this->fotografia_url) : null;

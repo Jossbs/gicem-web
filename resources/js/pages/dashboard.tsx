@@ -3,17 +3,21 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import AuthenticatedLayout from '@/layouts/authenticated-layout';
+import { type Auth, type Permissions } from '@/types/data/auth';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { ArrowRight, ClipboardList, GraduationCap, Heart, Megaphone, UsersRound } from 'lucide-react';
-import { type ReactNode } from 'react';
+import { type ReactNode, useMemo } from 'react';
 
-interface AuthUser {
-    id: number;
-    name: string;
-    email: string;
+interface Module {
+    icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
+    category: string;
+    title: string;
+    description: string;
+    href: string;
+    requiredPermission?: keyof Permissions;
 }
 
-const modules = [
+const allModules: Module[] = [
     {
         icon: GraduationCap,
         category: 'EXPEDIENTE DIGITAL',
@@ -29,6 +33,7 @@ const modules = [
         description:
             'Apertura de grupos, vinculación de alumnos con grados específicos y control de capacidad del aula.',
         href: '/groups',
+        requiredPermission: 'groups.access',
     },
     {
         icon: UsersRound,
@@ -37,6 +42,7 @@ const modules = [
         description:
             'Administración de plantilla de maestros y especialistas, creación de cuentas y control de accesos.',
         href: '/staff',
+        requiredPermission: 'staff.access',
     },
     {
         icon: Heart,
@@ -57,8 +63,14 @@ const modules = [
 ];
 
 function Dashboard() {
-    const { auth } = usePage<{ auth: { user: AuthUser } }>().props;
+    const { auth } = usePage<{ auth: Auth }>().props;
     const user = auth.user;
+    const can = auth.can;
+
+    const modules = useMemo(
+        () => allModules.filter((mod) => !mod.requiredPermission || can[mod.requiredPermission]),
+        [can],
+    );
 
     return (
         <>

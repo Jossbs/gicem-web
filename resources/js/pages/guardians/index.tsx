@@ -18,7 +18,8 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import AuthenticatedLayout from '@/layouts/authenticated-layout';
-import { Head, Link, router } from '@inertiajs/react';
+import { type Auth } from '@/types/data/auth';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { ArrowLeft, Eye, FolderOpen, Info, Mail, Search } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
 
@@ -75,6 +76,8 @@ const kinshipLabels: Record<string, string> = {
 };
 
 function GuardiansIndex({ guardians, filters, kinshipOptions }: Props) {
+    const { auth } = usePage<{ auth: Auth }>().props;
+    const can = auth.can;
     const [search, setSearch] = useState(filters.search ?? '');
 
     function applyFilters(newFilters: Record<string, string | undefined>) {
@@ -256,7 +259,7 @@ function GuardiansIndex({ guardians, filters, kinshipOptions }: Props) {
                                         </TableCell>
                                         <TableCell className="text-center">
                                             <div className="flex items-center justify-center gap-1">
-                                                {g.tutor_user_id && (
+                                                {can['guardians.create-account'] && g.tutor_user_id && (
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"

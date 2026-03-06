@@ -8,6 +8,7 @@ use App\Models\Client\Student;
 use App\Models\Client\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -96,6 +97,8 @@ class GuardianController extends Controller
 
     public function createAccount(Student $student): RedirectResponse
     {
+        Gate::authorize('guardians.create-account');
+
         if ($student->tutor_user_id) {
             return redirect()->route('guardians.show', $student)
                 ->with('info', 'Este tutor ya tiene una cuenta vinculada.');
@@ -130,6 +133,8 @@ class GuardianController extends Controller
 
     public function sendInvitation(Student $student): RedirectResponse
     {
+        Gate::authorize('guardians.create-account');
+
         $user = $student->tutorUser;
 
         if (! $user) {

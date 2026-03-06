@@ -12,13 +12,14 @@ use App\Enums\LiteracyLevel;
 use App\Enums\MedicalInstitution;
 use App\Enums\StudentStatus;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 
 class StoreStudentRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return Gate::allows('students.create');
     }
 
     /**

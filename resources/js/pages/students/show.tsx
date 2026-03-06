@@ -13,7 +13,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import AuthenticatedLayout from '@/layouts/authenticated-layout';
-import { Head, Link, router } from '@inertiajs/react';
+import { type Auth } from '@/types/data/auth';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
     ArrowLeft,
     Brain,
@@ -140,6 +141,9 @@ function getInitials(student: Student): string {
 }
 
 function StudentsShow({ student }: { student: Student }) {
+    const { auth } = usePage<{ auth: Auth }>().props;
+    const can = auth.can;
+
     const fullName = (student.nombre_completo ?? 'Sin nombre') +
         ([student.apellido_paterno, student.apellido_materno].filter(Boolean).length > 0
             ? ' ' + [student.apellido_paterno, student.apellido_materno].filter(Boolean).join(' ')
@@ -169,44 +173,50 @@ function StudentsShow({ student }: { student: Student }) {
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
                 {/* Sidebar */}
                 <div className="lg:col-span-3">
-                    <Card className="shadow-sm">
-                        <CardContent className="px-5 py-4">
-                            <p className="mb-3 text-[11px] font-bold tracking-[0.1em] text-muted-foreground">ACCIONES</p>
-                            <div className="flex flex-col gap-2">
-                                <Button className="h-10 w-full gap-2 text-xs font-semibold tracking-[0.1em]" asChild>
-                                    <Link href={`/students/${student.id}/edit`}>
-                                        <Pencil className="size-3.5" />
-                                        EDITAR EXPEDIENTE
-                                    </Link>
-                                </Button>
-                                <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <Button variant="ghost" className="h-10 w-full gap-2 text-xs font-semibold tracking-[0.1em] text-destructive hover:bg-destructive/8 hover:text-destructive">
-                                            <Trash2 className="size-3.5" />
-                                            ELIMINAR EXPEDIENTE
+                    {(can['students.edit'] || can['students.delete']) && (
+                        <Card className="shadow-sm">
+                            <CardContent className="px-5 py-4">
+                                <p className="mb-3 text-[11px] font-bold tracking-[0.1em] text-muted-foreground">ACCIONES</p>
+                                <div className="flex flex-col gap-2">
+                                    {can['students.edit'] && (
+                                        <Button className="h-10 w-full gap-2 text-xs font-semibold tracking-[0.1em]" asChild>
+                                            <Link href={`/students/${student.id}/edit`}>
+                                                <Pencil className="size-3.5" />
+                                                EDITAR EXPEDIENTE
+                                            </Link>
                                         </Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>Eliminar expediente</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                Esta acción no se puede deshacer. Se eliminará permanentemente el expediente de {student.nombre_completo} {student.apellido_paterno}.
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                            <AlertDialogAction
-                                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                                onClick={() => router.delete(`/students/${student.id}`)}
-                                            >
-                                                Eliminar
-                                            </AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
-                            </div>
-                        </CardContent>
-                    </Card>
+                                    )}
+                                    {can['students.delete'] && (
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <Button variant="ghost" className="h-10 w-full gap-2 text-xs font-semibold tracking-[0.1em] text-destructive hover:bg-destructive/8 hover:text-destructive">
+                                                    <Trash2 className="size-3.5" />
+                                                    ELIMINAR EXPEDIENTE
+                                                </Button>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle>Eliminar expediente</AlertDialogTitle>
+                                                    <AlertDialogDescription>
+                                                        Esta acción no se puede deshacer. Se eliminará permanentemente el expediente de {student.nombre_completo} {student.apellido_paterno}.
+                                                    </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                    <AlertDialogAction
+                                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                                        onClick={() => router.delete(`/students/${student.id}`)}
+                                                    >
+                                                        Eliminar
+                                                    </AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
+                                    )}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
                 </div>
 
                 {/* Main content */}

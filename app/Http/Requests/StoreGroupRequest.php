@@ -7,13 +7,14 @@ use App\Enums\GroupSpecialty;
 use App\Enums\SchoolGrade;
 use App\Enums\SchoolShift;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 
 class StoreGroupRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return Gate::allows('groups.manage');
     }
 
     /**

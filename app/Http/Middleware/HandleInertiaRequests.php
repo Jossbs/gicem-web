@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -40,6 +41,16 @@ class HandleInertiaRequests extends Middleware
             'name' => config('app.name'),
             'auth' => [
                 'user' => $request->user(),
+                'can' => $request->user() ? [
+                    'students.create' => Gate::allows('students.create'),
+                    'students.edit' => Gate::allows('students.edit'),
+                    'students.delete' => Gate::allows('students.delete'),
+                    'groups.access' => Gate::allows('groups.access'),
+                    'groups.manage' => Gate::allows('groups.manage'),
+                    'staff.access' => Gate::allows('staff.access'),
+                    'guardians.edit' => Gate::allows('guardians.edit'),
+                    'guardians.create-account' => Gate::allows('guardians.create-account'),
+                ] : [],
             ],
         ];
     }

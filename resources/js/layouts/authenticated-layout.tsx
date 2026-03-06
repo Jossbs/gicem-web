@@ -9,33 +9,47 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { AppLogo } from '@/components/ux/app-logo';
 import { CubePatternBg } from '@/components/ux/cube-pattern-bg';
+import { type Auth, type Permissions } from '@/types/data/auth';
 import { Link, router, usePage } from '@inertiajs/react';
 import { LogOut } from 'lucide-react';
-import { type PropsWithChildren } from 'react';
+import { type PropsWithChildren, useMemo } from 'react';
 
-interface AuthUser {
-    id: number;
-    name: string;
-    email: string;
+interface NavLink {
+    label: string;
+    href: string;
+    requiredPermission?: keyof Permissions;
 }
 
-const navLinks = [
+const allNavLinks: NavLink[] = [
     { label: 'Inicio', href: '/dashboard' },
     { label: 'Alumnos', href: '/students' },
-    { label: 'Grupos', href: '/groups' },
-    { label: 'Personal', href: '/staff' },
+    { label: 'Grupos', href: '/groups', requiredPermission: 'groups.access' },
+    { label: 'Personal', href: '/staff', requiredPermission: 'staff.access' },
     { label: 'Tutores', href: '/guardians' },
     { label: 'Anuncios', href: '/anuncios' },
 ];
+
+const roleLabels: Record<string, string> = {
+    admin: 'ADMINISTRADOR',
+    trabajador_social: 'TRABAJADOR SOCIAL',
+    docente: 'DOCENTE',
+    tutor: 'TUTOR',
+};
 
 function getInitials(name: string): string {
     return name.charAt(0).toUpperCase();
 }
 
 export default function AuthenticatedLayout({ children }: PropsWithChildren) {
-    const { auth } = usePage<{ auth: { user: AuthUser } }>().props;
+    const { auth } = usePage<{ auth: Auth }>().props;
     const user = auth.user;
+    const can = auth.can;
     const currentPath = usePage().url;
+
+    const navLinks = useMemo(
+        () => allNavLinks.filter((link) => !link.requiredPermission || can[link.requiredPermission]),
+        [can],
+    );
 
     function handleLogout() {
         router.post('/logout');
@@ -90,7 +104,7 @@ export default function AuthenticatedLayout({ children }: PropsWithChildren) {
                                     {user.name}
                                 </p>
                                 <p className="text-[10px] font-semibold tracking-[0.1em] text-primary">
-                                    ADMINISTRADOR
+                                    {roleLabels[user.rol_sistema] ?? user.rol_sistema}
                                 </p>
                             </div>
                             <Avatar size="lg">
