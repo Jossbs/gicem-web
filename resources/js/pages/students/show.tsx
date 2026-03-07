@@ -18,6 +18,7 @@ import { type Auth } from '@/types/data/auth';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
     ArrowLeft,
+    ArrowUp,
     BookOpen,
     Brain,
     ChevronDown,
@@ -35,7 +36,7 @@ import {
     Clock,
     ExternalLink,
 } from 'lucide-react';
-import { type ReactNode, useMemo, useState } from 'react';
+import { type ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 
 interface Student {
     id: number;
@@ -428,7 +429,39 @@ function StudentsShow({ student }: { student: Student }) {
                     </CollapsibleSection>
                 </div>
             </div>
+
+            <ScrollToTopButton />
         </>
+    );
+}
+
+function ScrollToTopButton() {
+    const [visible, setVisible] = useState(false);
+
+    const handleScroll = useCallback(() => {
+        setVisible(window.scrollY > 400);
+    }, []);
+
+    useEffect(() => {
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [handleScroll]);
+
+    function scrollToTop() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    return (
+        <button
+            type="button"
+            onClick={scrollToTop}
+            className={`fixed right-6 bottom-8 z-50 flex size-12 items-center justify-center rounded-xl border-2 border-golden/50 bg-golden text-white shadow-[0_4px_20px_rgba(0,0,0,0.25)] transition-all hover:scale-105 hover:shadow-[0_6px_28px_rgba(0,0,0,0.3)] ${
+                visible ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-4 opacity-0'
+            }`}
+            aria-label="Volver al inicio"
+        >
+            <ArrowUp className="size-5" strokeWidth={2.5} />
+        </button>
     );
 }
 
