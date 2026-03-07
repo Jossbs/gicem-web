@@ -6,6 +6,7 @@ use App\Enums\EducationLevel;
 use App\Enums\SchoolGrade;
 use App\Enums\SchoolShift;
 use Database\Factories\GroupFactory;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -17,6 +18,11 @@ class Group extends Model
     use HasFactory;
 
     protected $table = 'client.groups';
+
+    protected static function newFactory(): Factory
+    {
+        return GroupFactory::new();
+    }
 
     protected $guarded = [];
 

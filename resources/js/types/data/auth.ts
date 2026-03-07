@@ -20,4 +20,5 @@ export type Permissions = {
 export type Auth = {
     user: User;
     can: Permissions;
+    impersonating: string | null;
 };

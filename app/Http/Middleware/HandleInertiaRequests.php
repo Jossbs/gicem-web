@@ -60,6 +60,7 @@ class HandleInertiaRequests extends Middleware
                     'attendance.access' => Gate::allows('attendance.access'),
                     'attendance.take' => Gate::allows('attendance.take'),
                 ] : [],
+                'impersonating' => $request->user()?->isImpersonating() ? $request->user()->effectiveRole()->value : null,
             ],
         ];
     }

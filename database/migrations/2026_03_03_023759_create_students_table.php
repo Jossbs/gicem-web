@@ -6,78 +6,79 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-public function up(): void
-{
-// Usamos el esquema 'client' como en tu modelo User
-if (!Schema::hasTable('client.students')) {
-Schema::create('client.students', function (Blueprint $table) {
-$table->id();
+    public function up(): void
+    {
+        Schema::create('client.students', function (Blueprint $table): void {
+            $table->id();
 
-// --- Identificación y Datos Generales  ---
-$table->string('status')->default('borrador'); // Para controlar el pre-guardado vs activo
-$table->string('first_name'); // nombre_completo
-$table->string('paternal_surname'); // apellido_paterno
-$table->string('maternal_surname'); // apellido_materno
-$table->string('curp', 18)->unique()->nullable();
-$table->date('birth_date')->nullable();
-$table->string('nationality')->nullable(); // nacionalidad
-$table->string('birth_state')->nullable(); // entidad_federativa
-$table->string('gender')->nullable(); // genero (Catálogo)
-$table->string('photo_path')->nullable(); // fotografia_url
+            // Identificacion y datos generales
+            $table->string('curp', 18)->unique()->nullable();
+            $table->string('nombre_completo');
+            $table->string('apellido_paterno');
+            $table->string('apellido_materno');
+            $table->date('fecha_nacimiento')->nullable();
+            $table->string('nacionalidad')->nullable();
+            $table->string('entidad_federativa')->nullable();
+            $table->string('genero')->nullable();
+            $table->string('fotografia_url')->nullable();
 
-// Archivos de Identificación
-$table->string('birth_certificate_path')->nullable(); // doc_acta_nacimiento
-$table->string('curp_path')->nullable(); // curp_alumno (archivo)
+            // Archivos de identificacion
+            $table->string('doc_acta_nacimiento')->nullable();
+            $table->string('curp_alumno_doc')->nullable();
 
-// --- Perfil de Salud y Discapacidad  ---
-$table->unsignedBigInteger('nss')->nullable();
-$table->string('nss_file_path')->nullable(); // nss_original
-$table->string('disability_certificate_path')->nullable(); // doc_cert_discapacidad
-$table->string('medical_institution')->nullable();
-$table->string('blood_type')->nullable(); // tipo_sangre
-$table->string('primary_disability')->nullable(); // discapacidad
-$table->text('clinical_diagnosis')->nullable(); // diagnostico_medico
-$table->string('comorbidities')->nullable(); // comorbilidades (No obligatorio)
-$table->string('severe_allergies')->nullable(); // alergias graves
-$table->text('technical_aids')->nullable(); // uso aparatos
-$table->text('school_medication')->nullable(); // medicacion_escolar (desglosar en JSON si es necesario)
-$table->text('medical_alert')->nullable(); // alerta medica
+            // Perfil de salud y discapacidad
+            $table->string('nss')->nullable();
+            $table->string('nss_original_doc')->nullable();
+            $table->string('doc_cert_discapacidad')->nullable();
+            $table->string('institucion_medica')->nullable();
+            $table->string('tipo_sangre')->nullable();
+            $table->string('discapacidad')->nullable();
+            $table->text('diagnostico_medico')->nullable();
+            $table->string('comorbilidades')->nullable();
+            $table->text('alergias_graves')->nullable();
+            $table->text('uso_aparatos')->nullable();
+            $table->string('medicacion_nombre')->nullable();
+            $table->string('medicacion_dosis')->nullable();
+            $table->string('medicacion_horario')->nullable();
+            $table->text('alerta_medica')->nullable();
 
-// --- Entorno Familiar y Contacto  ---
-$table->string('address_street')->nullable(); // domicilio dividido
-$table->string('address_number')->nullable();
-$table->string('address_colony')->nullable();
-$table->string('address_zip_code')->nullable();
+            // Entorno familiar y contacto
+            $table->string('tutor_nombre')->nullable();
+            $table->string('tutor_apellido_paterno')->nullable();
+            $table->string('tutor_apellido_materno')->nullable();
+            $table->string('tutor_parentesco')->nullable();
+            $table->string('tel_emergencia_1')->nullable();
+            $table->string('tel_emergencia_2')->nullable();
+            $table->string('correo_tutor')->nullable();
+            $table->string('domicilio_calle')->nullable();
+            $table->string('domicilio_numero')->nullable();
+            $table->string('domicilio_colonia')->nullable();
+            $table->string('domicilio_municipio')->nullable();
+            $table->string('domicilio_estado')->nullable();
+            $table->string('domicilio_cp')->nullable();
+            $table->string('comprobante_domicilio_doc')->nullable();
+            $table->string('ine_tutor_doc')->nullable();
 
-$table->string('guardian_name')->nullable(); // tutor_nombre
-$table->string('guardian_relationship')->nullable(); // tutor_parentesco
-$table->string('guardian_email')->nullable(); // correo_tutor
-$table->string('emergency_phone_1')->nullable(); // tel_emergencia_1
-$table->string('emergency_phone_2')->nullable(); // tel_emergencia_2 (Opcional)
+            // Perfil psicopedagogico
+            $table->string('comunicacion_tipo')->nullable();
+            $table->string('nivel_lectoescritura')->nullable();
+            $table->json('habilidades_autonomia')->nullable();
+            $table->text('intereses_alumnos')->nullable();
+            $table->text('detonantes_conducta')->nullable();
 
-$table->string('address_proof_path')->nullable(); // comprobante_domicilio
-$table->string('guardian_ine_path')->nullable(); // ine tutor
+            // Control administrativo
+            $table->string('estatus_alumno')->default('activo');
+            $table->string('status')->default('completo');
+            $table->date('fecha_ingreso')->nullable();
+            $table->string('grado_grupo')->nullable();
+            $table->foreignId('tutor_user_id')->nullable()->constrained('client.users')->nullOnDelete();
 
-// --- Perfil Psicopedagógico [cite: 4] ---
-$table->string('communication_style')->nullable(); // comunicacion_tipo
-$table->string('literacy_level')->nullable(); // nivel lectoescritura
-$table->text('interests')->nullable(); // intereses alumnos
-$table->text('behavioral_triggers')->nullable(); // detonantes conducta
-$table->text('autonomy_skills')->nullable(); // habilidades autonomia
+            $table->timestamps();
+        });
+    }
 
-// --- Control Administrativo [cite: 4] ---
-$table->string('enrollment_status')->default('Activo'); // estatus alumno
-$table->date('admission_date')->useCurrent(); // fecha ingreso
-// Asumo relación con un modelo Group
-$table->foreignId('group_id')->nullable()->constrained('client.groups');
-
-$table->timestamps();
-});
-}
-}
-
-public function down(): void
-{
-Schema::dropIfExists('client.students');
-}
+    public function down(): void
+    {
+        Schema::dropIfExists('client.students');
+    }
 };

@@ -13,7 +13,7 @@ import { AppearanceToggle } from '@/components/ux/appearance-toggle';
 import { CubePatternBg } from '@/components/ux/cube-pattern-bg';
 import { type Auth, type Permissions } from '@/types/data/auth';
 import { Link, router, usePage } from '@inertiajs/react';
-import { LogOut } from 'lucide-react';
+import { Eye, EyeOff, LogOut } from 'lucide-react';
 import { type PropsWithChildren, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 
@@ -40,6 +40,13 @@ const roleLabels: Record<string, string> = {
     tutor: 'TUTOR',
 };
 
+const impersonatableRoles = [
+    { value: 'admin', label: 'Administrador' },
+    { value: 'trabajador_social', label: 'Trabajador Social' },
+    { value: 'docente', label: 'Docente' },
+    { value: 'tutor', label: 'Tutor' },
+];
+
 function getInitials(name: string): string {
     return name.charAt(0).toUpperCase();
 }
@@ -48,6 +55,8 @@ export default function AuthenticatedLayout({ children }: PropsWithChildren) {
     const { auth, flash } = usePage<{ auth: Auth; flash: { success?: string; error?: string } }>().props;
     const user = auth.user;
     const can = auth.can;
+    const impersonating = auth.impersonating;
+    const isRealAdmin = user.rol_sistema === 'admin';
     const currentPath = usePage().url;
 
     useEffect(() => {
@@ -68,9 +77,39 @@ export default function AuthenticatedLayout({ children }: PropsWithChildren) {
         router.post('/logout');
     }
 
+    function handleImpersonate(role: string) {
+        router.post('/impersonate/start', { role });
+    }
+
+    function handleStopImpersonating() {
+        router.post('/impersonate/stop');
+    }
+
     return (
         <div className="flex min-h-screen flex-col bg-background">
             <Toaster position="bottom-right" closeButton toastOptions={{ style: { fontWeight: 500 } }} />
+
+            {/* Impersonation banner */}
+            {impersonating && (
+                <div className="relative z-20 border-b border-preventive/30 bg-preventive/10">
+                    <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-2">
+                        <div className="flex items-center gap-2">
+                            <Eye className="size-4 text-preventive-foreground" />
+                            <span className="text-xs font-semibold tracking-wide text-preventive-foreground">
+                                VIENDO COMO: {roleLabels[impersonating]}
+                            </span>
+                        </div>
+                        <button
+                            onClick={handleStopImpersonating}
+                            className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-preventive/30 bg-preventive/15 px-3 py-1 text-[11px] font-semibold tracking-wide text-preventive-foreground transition-colors hover:bg-preventive/25"
+                        >
+                            <EyeOff className="size-3.5" />
+                            DEJAR DE SIMULAR
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* ── Navbar (blanco) ── */}
             <header className="border-b border-border bg-card shadow-sm">
                 <div className="mx-auto flex h-[68px] max-w-6xl items-center justify-between px-6">
@@ -110,43 +149,77 @@ export default function AuthenticatedLayout({ children }: PropsWithChildren) {
                         })}
                     </div>
 
-                    {/* User dropdown */}
-                    <DropdownMenu>
-                        <DropdownMenuTrigger className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-1 transition-colors hover:bg-muted focus:outline-none">
-                            <div className="hidden text-right sm:block">
-                                <p className="text-sm leading-tight font-semibold text-foreground">
-                                    {user.name}
-                                </p>
-                                <p className="text-[10px] font-semibold tracking-[0.1em] text-primary">
-                                    {roleLabels[user.rol_sistema] ?? user.rol_sistema}
-                                </p>
-                            </div>
-                            <Avatar size="lg">
-                                {user.fotografia_display_url && (
-                                    <AvatarImage src={user.fotografia_display_url} alt={user.name} />
+                    {/* Theme toggle + User dropdown */}
+                    <div className="flex items-center gap-2">
+                        <div className="hidden sm:block">
+                            <AppearanceToggle />
+                        </div>
+
+                        <DropdownMenu>
+                            <DropdownMenuTrigger className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-1 transition-colors hover:bg-muted focus:outline-none">
+                                <div className="hidden text-right sm:block">
+                                    <p className="text-sm leading-tight font-semibold text-foreground">
+                                        {user.name}
+                                    </p>
+                                    <p className="text-[10px] font-semibold tracking-[0.1em] text-primary">
+                                        {impersonating
+                                            ? roleLabels[impersonating]
+                                            : (roleLabels[user.rol_sistema] ?? user.rol_sistema)}
+                                    </p>
+                                </div>
+                                <Avatar size="lg">
+                                    {user.fotografia_display_url && (
+                                        <AvatarImage src={user.fotografia_display_url} alt={user.name} />
+                                    )}
+                                    <AvatarFallback className="bg-primary text-sm font-bold text-primary-foreground">
+                                        {getInitials(user.name)}
+                                    </AvatarFallback>
+                                </Avatar>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-56">
+                                <DropdownMenuLabel>
+                                    <p className="text-sm font-medium">{user.name}</p>
+                                    <p className="text-xs text-muted-foreground">{user.email}</p>
+                                </DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <div className="flex items-center justify-between px-2 py-1.5 sm:hidden">
+                                    <span className="text-xs text-muted-foreground">Tema</span>
+                                    <AppearanceToggle />
+                                </div>
+                                <DropdownMenuSeparator className="sm:hidden" />
+                                {isRealAdmin && (
+                                    <>
+                                        <DropdownMenuLabel className="text-[10px] font-bold tracking-[0.1em] text-muted-foreground">
+                                            VER COMO
+                                        </DropdownMenuLabel>
+                                        {impersonatableRoles.map((role) => {
+                                            const isCurrentView = impersonating
+                                                ? impersonating === role.value
+                                                : role.value === 'admin';
+                                            return (
+                                                <DropdownMenuItem
+                                                    key={role.value}
+                                                    onClick={() => handleImpersonate(role.value)}
+                                                    className={`cursor-pointer gap-2 ${isCurrentView ? 'bg-accent font-semibold text-accent-foreground' : ''}`}
+                                                >
+                                                    <Eye className="size-3.5" />
+                                                    {role.label}
+                                                    {isCurrentView && (
+                                                        <span className="ml-auto text-[10px] text-primary">ACTIVO</span>
+                                                    )}
+                                                </DropdownMenuItem>
+                                            );
+                                        })}
+                                        <DropdownMenuSeparator />
+                                    </>
                                 )}
-                                <AvatarFallback className="bg-primary text-sm font-bold text-primary-foreground">
-                                    {getInitials(user.name)}
-                                </AvatarFallback>
-                            </Avatar>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-52">
-                            <DropdownMenuLabel>
-                                <p className="text-sm font-medium">{user.name}</p>
-                                <p className="text-xs text-muted-foreground">{user.email}</p>
-                            </DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <div className="flex items-center justify-between px-2 py-1.5">
-                                <span className="text-xs text-muted-foreground">Tema</span>
-                                <AppearanceToggle />
-                            </div>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
-                                <LogOut className="size-4" />
-                                Cerrar Sesión
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                                    <LogOut className="size-4" />
+                                    Cerrar Sesión
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
                 </div>
 
                 {/* Mobile nav */}

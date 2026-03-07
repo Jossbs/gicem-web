@@ -3,13 +3,23 @@
 namespace App\Models\Client;
 
 use App\Enums\LogEntryCategory;
+use Database\Factories\LogEntryFactory;
+use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Storage;
 
 class LogEntry extends Model
 {
+    use HasFactory;
+
     protected $table = 'client.log_entries';
+
+    protected static function newFactory(): Factory
+    {
+        return LogEntryFactory::new();
+    }
 
     protected $guarded = [];
 

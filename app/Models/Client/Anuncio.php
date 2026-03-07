@@ -6,6 +6,7 @@ use App\Enums\AlcanceAnuncio;
 use App\Enums\PrioridadAnuncio;
 use App\Enums\TipoEmisor;
 use Database\Factories\AnuncioFactory;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,6 +17,11 @@ class Anuncio extends Model
     use HasFactory;
 
     protected $table = 'client.anuncios';
+
+    protected static function newFactory(): Factory
+    {
+        return AnuncioFactory::new();
+    }
 
     protected $fillable = [
         'user_id',

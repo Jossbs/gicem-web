@@ -3,8 +3,10 @@
 namespace App\Models\Client;
 
 use App\Enums\SystemRole;
+use App\Notifications\InvitationNotification;
 use Database\Factories\UserFactory;
 use Illuminate\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -18,6 +20,11 @@ class User extends Authenticatable
     use HasFactory, MustVerifyEmail, Notifiable;
 
     protected $table = 'client.users';
+
+    protected static function newFactory(): Factory
+    {
+        return UserFactory::new();
+    }
 
     protected $fillable = [
         'name',
@@ -68,19 +75,49 @@ class User extends Authenticatable
         return $this->groups()->pluck('nombre_grupo')->all();
     }
 
+    public function effectiveRole(): SystemRole
+    {
+        if ($this->rol_sistema !== SystemRole::Admin) {
+            return $this->rol_sistema;
+        }
+
+        $impersonating = session('impersonating_role');
+
+        if ($impersonating && SystemRole::tryFrom($impersonating)) {
+            return SystemRole::from($impersonating);
+        }
+
+        return $this->rol_sistema;
+    }
+
+    public function isImpersonating(): bool
+    {
+        return $this->rol_sistema === SystemRole::Admin && session()->has('impersonating_role');
+    }
+
     public function isAdmin(): bool
     {
-        return $this->rol_sistema === SystemRole::Admin;
+        return $this->effectiveRole() === SystemRole::Admin;
     }
 
     public function isDocente(): bool
     {
-        return $this->rol_sistema === SystemRole::Docente;
+        return $this->effectiveRole() === SystemRole::Docente;
     }
 
     public function isTrabajadorSocial(): bool
     {
-        return $this->rol_sistema === SystemRole::TrabajadorSocial;
+        return $this->effectiveRole() === SystemRole::TrabajadorSocial;
+    }
+
+    public function isRealAdmin(): bool
+    {
+        return $this->rol_sistema === SystemRole::Admin;
+    }
+
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new InvitationNotification($token));
     }
 
     public function getFotografiaDisplayUrlAttribute(): ?string

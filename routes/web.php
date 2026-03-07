@@ -5,6 +5,7 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\GuardianController;
+use App\Http\Controllers\ImpersonateRoleController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\LogEntryController;
 use App\Http\Controllers\StaffController;
@@ -37,4 +38,7 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/guardians/{student}', [GuardianController::class, 'show'])->name('guardians.show');
     Route::post('/guardians/{student}/create-account', [GuardianController::class, 'createAccount'])->name('guardians.create-account');
     Route::post('/guardians/{student}/send-invitation', [GuardianController::class, 'sendInvitation'])->name('guardians.send-invitation');
+
+    Route::post('/impersonate/start', [ImpersonateRoleController::class, 'start'])->name('impersonate.start');
+    Route::post('/impersonate/stop', [ImpersonateRoleController::class, 'stop'])->name('impersonate.stop');
 });
