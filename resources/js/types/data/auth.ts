@@ -11,6 +11,10 @@ export type Permissions = {
     'guardians.edit': boolean;
     'guardians.create-account': boolean;
     'anuncios.delete': boolean;
+    'log-entries.create': boolean;
+    'log-entries.delete': boolean;
+    'attendance.access': boolean;
+    'attendance.take': boolean;
 };
 
 export type Auth = {

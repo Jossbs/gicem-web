@@ -17,6 +17,7 @@ import { type Auth } from '@/types/data/auth';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
     ArrowLeft,
+    BookOpen,
     Brain,
     ChevronDown,
     ChevronUp,
@@ -192,11 +193,16 @@ function StudentsShow({ student }: { student: Student }) {
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
                 {/* Sidebar */}
                 <div className="lg:col-span-3">
-                    {(can['students.edit'] || can['students.delete']) && (
-                        <Card className="shadow-sm">
-                            <CardContent className="px-5 py-4">
-                                <p className="mb-3 text-[11px] font-bold tracking-[0.1em] text-muted-foreground">ACCIONES</p>
+                    <Card className="shadow-sm">
+                        <CardContent className="px-5 py-4">
+                            <p className="mb-3 text-[11px] font-bold tracking-[0.1em] text-muted-foreground">ACCIONES</p>
                                 <div className="flex flex-col gap-2">
+                                    <Button variant="outline" className="h-10 w-full gap-2 text-xs font-semibold tracking-[0.1em]" asChild>
+                                        <Link href={`/students/${student.id}/log-entries`}>
+                                            <BookOpen className="size-3.5" />
+                                            BITACORA
+                                        </Link>
+                                    </Button>
                                     {can['students.edit'] && (
                                         <Button className="h-10 w-full gap-2 text-xs font-semibold tracking-[0.1em]" asChild>
                                             <Link href={`/students/${student.id}/edit`}>
@@ -235,7 +241,6 @@ function StudentsShow({ student }: { student: Student }) {
                                 </div>
                             </CardContent>
                         </Card>
-                    )}
                 </div>
 
                 {/* Main content */}

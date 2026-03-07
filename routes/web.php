@@ -1,9 +1,11 @@
 <?php
 
 use App\Http\Controllers\AnuncioController;
+use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\GuardianController;
+use App\Http\Controllers\LogEntryController;
 use App\Http\Controllers\StaffController;
 use App\Http\Controllers\StudentController;
 use Illuminate\Support\Facades\Route;
@@ -16,6 +18,12 @@ Route::get('/', function () {
 Route::middleware('auth')->group(function (): void {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::resource('students', StudentController::class);
+    Route::resource('students.log-entries', LogEntryController::class)->only(['index', 'create', 'store', 'destroy']);
+
+    Route::get('/attendance', [AttendanceController::class, 'index'])->name('attendance.index');
+    Route::get('/attendance/{group}/take', [AttendanceController::class, 'take'])->name('attendance.take');
+    Route::post('/attendance/{group}', [AttendanceController::class, 'store'])->name('attendance.store');
+    Route::get('/attendance/{group}/show', [AttendanceController::class, 'show'])->name('attendance.show');
     Route::resource('groups', GroupController::class);
     Route::resource('staff', StaffController::class)->middleware('role:admin');
     Route::post('/staff/{staff}/send-invitation', [StaffController::class, 'sendInvitation'])->name('staff.send-invitation')->middleware('role:admin');

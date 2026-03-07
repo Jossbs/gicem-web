@@ -81,6 +81,14 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('guardians.create-account', fn (User $user): bool => $user->isAdmin() || $user->isTrabajadorSocial());
 
         Gate::define('anuncios.delete', fn (User $user): bool => $user->isAdmin() || $user->isTrabajadorSocial());
+
+        Gate::define('log-entries.create', fn (User $user): bool => $user->isAdmin() || $user->isDocente() || $user->isTrabajadorSocial());
+
+        Gate::define('log-entries.delete', fn (User $user): bool => $user->isAdmin());
+
+        Gate::define('attendance.access', fn (User $user): bool => $user->isAdmin() || $user->isDocente());
+
+        Gate::define('attendance.take', fn (User $user): bool => $user->isAdmin() || $user->isDocente());
     }
 
     protected function configureNotifications(): void

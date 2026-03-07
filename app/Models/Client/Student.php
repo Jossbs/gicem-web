@@ -13,6 +13,7 @@ use App\Enums\StudentStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 
 class Student extends Model
@@ -43,6 +44,16 @@ class Student extends Model
     public function tutorUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'tutor_user_id');
+    }
+
+    public function logEntries(): HasMany
+    {
+        return $this->hasMany(LogEntry::class);
+    }
+
+    public function attendances(): HasMany
+    {
+        return $this->hasMany(Attendance::class);
     }
 
     public function getNombreCompletoDisplayAttribute(): string

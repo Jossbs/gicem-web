@@ -51,6 +51,10 @@ class HandleInertiaRequests extends Middleware
                     'guardians.edit' => Gate::allows('guardians.edit'),
                     'guardians.create-account' => Gate::allows('guardians.create-account'),
                     'anuncios.delete' => Gate::allows('anuncios.delete'),
+                    'log-entries.create' => Gate::allows('log-entries.create'),
+                    'log-entries.delete' => Gate::allows('log-entries.delete'),
+                    'attendance.access' => Gate::allows('attendance.access'),
+                    'attendance.take' => Gate::allows('attendance.take'),
                 ] : [],
             ],
         ];

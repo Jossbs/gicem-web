@@ -33,6 +33,7 @@ import { type Auth } from '@/types/data/auth';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
     ArrowLeft,
+    BookOpen,
     ChevronDown,
     ChevronUp,
     Eye,
@@ -337,6 +338,11 @@ function StudentsIndex({ students, drafts, filters, disabilityOptions, statusOpt
                                                 <Button variant="ghost" size="sm" className="size-8 p-0" asChild>
                                                     <Link href={`/students/${student.id}`}>
                                                         <Eye className="size-4" />
+                                                    </Link>
+                                                </Button>
+                                                <Button variant="ghost" size="sm" className="size-8 p-0" asChild title="Bitacora">
+                                                    <Link href={`/students/${student.id}/log-entries`}>
+                                                        <BookOpen className="size-4" />
                                                     </Link>
                                                 </Button>
                                                 {can['students.edit'] && (

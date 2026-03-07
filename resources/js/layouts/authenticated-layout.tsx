@@ -24,6 +24,7 @@ const allNavLinks: NavLink[] = [
     { label: 'Inicio', href: '/dashboard' },
     { label: 'Alumnos', href: '/students' },
     { label: 'Grupos', href: '/groups', requiredPermission: 'groups.access' },
+    { label: 'Asistencia', href: '/attendance', requiredPermission: 'attendance.access' },
     { label: 'Personal', href: '/staff', requiredPermission: 'staff.access' },
     { label: 'Tutores', href: '/guardians' },
     { label: 'Anuncios', href: '/anuncios' },
