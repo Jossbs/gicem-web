@@ -15,12 +15,15 @@ use App\Http\Requests\StoreStudentRequest;
 use App\Http\Requests\UpdateStudentRequest;
 use App\Models\Client\Group;
 use App\Models\Client\Student;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class StudentController extends Controller
 {
@@ -190,6 +193,43 @@ class StudentController extends Controller
 
         return redirect()->route('students.index')
             ->with('success', 'Expediente eliminado exitosamente.');
+    }
+
+    public function exportPdf(Student $student): SymfonyResponse
+    {
+        $user = request()->user();
+        if ($user->isDocente()) {
+            abort_unless(in_array($student->grado_grupo, $user->docenteGroupNames()), 403);
+        }
+
+        $photoBase64 = null;
+        if ($student->fotografia_url) {
+            $path = Storage::disk('public')->path($student->fotografia_url);
+            if (file_exists($path)) {
+                $mime = mime_content_type($path);
+                $photoBase64 = 'data:'.$mime.';base64,'.base64_encode(file_get_contents($path));
+            }
+        }
+
+        $documents = [
+            ['label' => 'Acta de nacimiento', 'exists' => (bool) $student->doc_acta_nacimiento],
+            ['label' => 'CURP (documento)', 'exists' => (bool) $student->curp_alumno_doc],
+            ['label' => 'Cert. discapacidad', 'exists' => (bool) $student->doc_cert_discapacidad],
+            ['label' => 'Documento NSS', 'exists' => (bool) $student->nss_original_doc],
+            ['label' => 'Comp. domicilio', 'exists' => (bool) $student->comprobante_domicilio_doc],
+            ['label' => 'INE del tutor', 'exists' => (bool) $student->ine_tutor_doc],
+            ['label' => 'Fotografía', 'exists' => (bool) $student->fotografia_url],
+        ];
+
+        $filename = 'Expediente_'.str_replace(' ', '_', $student->apellido_paterno.'_'.$student->nombre_completo).'.pdf';
+
+        $pdf = Pdf::loadView('pdf.student-record', [
+            'student' => $student,
+            'photoBase64' => $photoBase64,
+            'documents' => $documents,
+        ])->setPaper('letter');
+
+        return $pdf->download($filename);
     }
 
     /**

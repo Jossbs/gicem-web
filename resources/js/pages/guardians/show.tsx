@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import AuthenticatedLayout from '@/layouts/authenticated-layout';
 import { type Auth } from '@/types/data/auth';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { ArrowLeft, ChevronDown, ChevronUp, Mail, UserPlus } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronUp, Mail, MapPin, Pencil, UserPlus } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
 
 interface StudentGuardian {
@@ -39,6 +39,17 @@ function GuardiansShow({ student }: { student: StudentGuardian }) {
     const [processing, setProcessing] = useState(false);
     const hasAccount = !!student.tutor_user_id;
 
+    const fullAddress = [
+        student.domicilio_calle,
+        student.domicilio_numero,
+        student.domicilio_colonia,
+        student.domicilio_municipio,
+        student.domicilio_estado,
+        student.domicilio_cp,
+    ]
+        .filter(Boolean)
+        .join(', ');
+
     function handleCreateAccount() {
         setProcessing(true);
         router.post(`/guardians/${student.id}/create-account`, {}, {
@@ -72,9 +83,10 @@ function GuardiansShow({ student }: { student: StudentGuardian }) {
                         <Card className="shadow-sm">
                             <CardContent className="px-5 py-4">
                                 <p className="mb-3 text-[11px] font-bold tracking-[0.1em] text-muted-foreground">ACCIONES</p>
-                                <Button className="h-10 w-full gap-2 text-xs font-semibold tracking-[0.1em]" asChild>
+                                <Button className="h-10 w-full gap-2 text-[10px] font-semibold tracking-[0.1em]" asChild>
                                     <Link href={`/students/${student.id}/edit`}>
-                                        EDITAR EXPEDIENTE DEL ALUMNO
+                                        <Pencil className="size-3.5" />
+                                        EDITAR EXPEDIENTE
                                     </Link>
                                 </Button>
                                 <p className="mt-3 text-[10px] text-muted-foreground">
@@ -166,6 +178,28 @@ function GuardiansShow({ student }: { student: StudentGuardian }) {
                             <DataItem label="Estado" value={student.domicilio_estado} />
                             <DataItem label="Código postal" value={student.domicilio_cp} />
                         </div>
+
+                        {fullAddress && (
+                            <div className="mt-5">
+                                <div className="mb-2 flex items-center gap-1.5">
+                                    <MapPin className="size-3.5 text-primary" />
+                                    <p className="text-[10px] font-bold tracking-[0.1em] uppercase text-muted-foreground">
+                                        UBICACIÓN
+                                    </p>
+                                </div>
+                                <div className="overflow-hidden rounded-lg border">
+                                    <iframe
+                                        title="Mapa de ubicación"
+                                        width="100%"
+                                        height="280"
+                                        style={{ border: 0 }}
+                                        loading="lazy"
+                                        referrerPolicy="no-referrer-when-downgrade"
+                                        src={`https://www.google.com/maps?q=${encodeURIComponent(fullAddress)}&output=embed`}
+                                    />
+                                </div>
+                            </div>
+                        )}
                     </CollapsibleSection>
 
                     <CollapsibleSection title="ALUMNO ASOCIADO" defaultOpen>
@@ -189,9 +223,9 @@ function CollapsibleSection({ title, defaultOpen = false, children }: { title: s
     const [open, setOpen] = useState(defaultOpen);
     return (
         <Card className="overflow-hidden shadow-sm">
-            <button type="button" onClick={() => setOpen(!open)} className="flex w-full items-center justify-between bg-primary/8 px-6 py-3 text-left transition-colors hover:bg-primary/12">
-                <span className="text-[11px] font-bold tracking-[0.1em] text-primary">{title}</span>
-                {open ? <ChevronUp className="size-4 text-primary" /> : <ChevronDown className="size-4 text-primary" />}
+            <button type="button" onClick={() => setOpen(!open)} className="flex w-full items-center justify-between border-l-[3px] border-l-primary bg-card px-5 py-3 text-left transition-colors hover:bg-muted/50">
+                <span className="text-[11px] font-bold tracking-[0.12em] text-foreground">{title}</span>
+                {open ? <ChevronUp className="size-4 text-muted-foreground" /> : <ChevronDown className="size-4 text-muted-foreground" />}
             </button>
             {open && <CardContent className="px-6 py-4">{children}</CardContent>}
         </Card>

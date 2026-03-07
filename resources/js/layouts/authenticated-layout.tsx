@@ -1,4 +1,4 @@
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -7,12 +7,15 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Toaster } from '@/components/ui/sonner';
 import { AppLogo } from '@/components/ux/app-logo';
+import { AppearanceToggle } from '@/components/ux/appearance-toggle';
 import { CubePatternBg } from '@/components/ux/cube-pattern-bg';
 import { type Auth, type Permissions } from '@/types/data/auth';
 import { Link, router, usePage } from '@inertiajs/react';
 import { LogOut } from 'lucide-react';
-import { type PropsWithChildren, useMemo } from 'react';
+import { type PropsWithChildren, useEffect, useMemo } from 'react';
+import { toast } from 'sonner';
 
 interface NavLink {
     label: string;
@@ -42,10 +45,19 @@ function getInitials(name: string): string {
 }
 
 export default function AuthenticatedLayout({ children }: PropsWithChildren) {
-    const { auth } = usePage<{ auth: Auth }>().props;
+    const { auth, flash } = usePage<{ auth: Auth; flash: { success?: string; error?: string } }>().props;
     const user = auth.user;
     const can = auth.can;
     const currentPath = usePage().url;
+
+    useEffect(() => {
+        if (flash?.success) {
+            toast.success(flash.success);
+        }
+        if (flash?.error) {
+            toast.error(flash.error);
+        }
+    }, [flash]);
 
     const navLinks = useMemo(
         () => allNavLinks.filter((link) => !link.requiredPermission || can[link.requiredPermission]),
@@ -58,6 +70,7 @@ export default function AuthenticatedLayout({ children }: PropsWithChildren) {
 
     return (
         <div className="flex min-h-screen flex-col bg-background">
+            <Toaster position="bottom-right" closeButton toastOptions={{ style: { fontWeight: 500 } }} />
             {/* ── Navbar (blanco) ── */}
             <header className="border-b border-border bg-card shadow-sm">
                 <div className="mx-auto flex h-[68px] max-w-6xl items-center justify-between px-6">
@@ -109,6 +122,9 @@ export default function AuthenticatedLayout({ children }: PropsWithChildren) {
                                 </p>
                             </div>
                             <Avatar size="lg">
+                                {user.fotografia_display_url && (
+                                    <AvatarImage src={user.fotografia_display_url} alt={user.name} />
+                                )}
                                 <AvatarFallback className="bg-primary text-sm font-bold text-primary-foreground">
                                     {getInitials(user.name)}
                                 </AvatarFallback>
@@ -119,6 +135,11 @@ export default function AuthenticatedLayout({ children }: PropsWithChildren) {
                                 <p className="text-sm font-medium">{user.name}</p>
                                 <p className="text-xs text-muted-foreground">{user.email}</p>
                             </DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <div className="flex items-center justify-between px-2 py-1.5">
+                                <span className="text-xs text-muted-foreground">Tema</span>
+                                <AppearanceToggle />
+                            </div>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
                                 <LogOut className="size-4" />
@@ -185,13 +206,13 @@ export default function AuthenticatedLayout({ children }: PropsWithChildren) {
                                 &copy; 2026 Todos los derechos reservados.
                             </p>
                             <div className="flex items-center gap-2 text-[10px]">
-                                <a href="#" className="font-semibold tracking-wider text-primary-foreground/50 hover:text-primary-foreground/80">
-                                    SOPORTE TÉCNICO
-                                </a>
-                                <span className="text-primary-foreground/25">&bull;</span>
-                                <a href="#" className="font-semibold tracking-wider text-primary-foreground/50 hover:text-primary-foreground/80">
+                                <Link href="/aviso-de-privacidad" className="font-semibold tracking-wider text-primary-foreground/50 hover:text-primary-foreground/80">
                                     AVISO DE PRIVACIDAD
-                                </a>
+                                </Link>
+                                <span className="text-primary-foreground/25">&bull;</span>
+                                <Link href="/terminos-y-condiciones" className="font-semibold tracking-wider text-primary-foreground/50 hover:text-primary-foreground/80">
+                                    TÉRMINOS Y CONDICIONES
+                                </Link>
                             </div>
                         </div>
                     </div>

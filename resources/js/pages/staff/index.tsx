@@ -18,6 +18,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import AuthenticatedLayout from '@/layouts/authenticated-layout';
+import { formatRecordId } from '@/lib/format-record-id';
 import { Head, Link, router } from '@inertiajs/react';
 import {
     AlertDialog,
@@ -182,6 +183,9 @@ function StaffIndex({ staff, filters, roleOptions }: Props) {
                         <TableHeader>
                             <TableRow className="bg-primary hover:bg-primary dark:bg-[oklch(0.28_0.06_9.01)] dark:hover:bg-[oklch(0.28_0.06_9.01)]">
                                 <TableHead className="text-center text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
+                                    ID
+                                </TableHead>
+                                <TableHead className="text-center text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
                                     NOMBRE(S)
                                 </TableHead>
                                 <TableHead className="text-center text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
@@ -204,7 +208,7 @@ function StaffIndex({ staff, filters, roleOptions }: Props) {
                         <TableBody>
                             {staff.data.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={6} className="py-16 text-center">
+                                    <TableCell colSpan={7} className="py-16 text-center">
                                         <div className="flex flex-col items-center gap-3">
                                             <div className="flex size-12 items-center justify-center rounded-full bg-muted">
                                                 <FolderOpen className="size-6 text-muted-foreground" />
@@ -233,6 +237,9 @@ function StaffIndex({ staff, filters, roleOptions }: Props) {
                             ) : (
                                 staff.data.map((member) => (
                                     <TableRow key={member.id} className="group">
+                                        <TableCell className="text-center font-mono text-xs text-muted-foreground">
+                                            {formatRecordId(member.id, 'staff')}
+                                        </TableCell>
                                         <TableCell className="text-center font-medium">
                                             {member.name}
                                         </TableCell>

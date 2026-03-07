@@ -29,6 +29,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import AuthenticatedLayout from '@/layouts/authenticated-layout';
+import { formatRecordId } from '@/lib/format-record-id';
 import { type Auth } from '@/types/data/auth';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
@@ -38,6 +39,7 @@ import {
     ChevronUp,
     Eye,
     FileEdit,
+    FolderOpen,
     Pencil,
     Plus,
     Search,
@@ -295,6 +297,7 @@ function StudentsIndex({ students, drafts, filters, disabilityOptions, statusOpt
                     <Table>
                         <TableHeader>
                             <TableRow className="bg-primary hover:bg-primary dark:bg-[oklch(0.28_0.06_9.01)] dark:hover:bg-[oklch(0.28_0.06_9.01)]">
+                                <TableHead className="text-center text-[11px] font-bold tracking-[0.1em] text-primary-foreground">ID</TableHead>
                                 <TableHead className="text-center text-[11px] font-bold tracking-[0.1em] text-primary-foreground">NOMBRE(S)</TableHead>
                                 <TableHead className="text-center text-[11px] font-bold tracking-[0.1em] text-primary-foreground">APELLIDOS</TableHead>
                                 <TableHead className="text-center text-[11px] font-bold tracking-[0.1em] text-primary-foreground">DISCAPACIDAD</TableHead>
@@ -306,13 +309,28 @@ function StudentsIndex({ students, drafts, filters, disabilityOptions, statusOpt
                         <TableBody>
                             {students.data.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={6} className="py-12 text-center text-sm text-muted-foreground">
-                                        No se encontraron expedientes con esos filtros.
+                                    <TableCell colSpan={7} className="py-16 text-center">
+                                        <div className="flex flex-col items-center gap-3">
+                                            <div className="flex size-12 items-center justify-center rounded-full bg-muted">
+                                                <FolderOpen className="size-6 text-muted-foreground" />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-medium text-foreground">
+                                                    No se encontraron expedientes
+                                                </p>
+                                                <p className="mt-0.5 text-xs text-muted-foreground">
+                                                    Intente con otros filtros o limpie la búsqueda.
+                                                </p>
+                                            </div>
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ) : (
                                 students.data.map((student) => (
                                     <TableRow key={student.id}>
+                                        <TableCell className="text-center font-mono text-xs text-muted-foreground">
+                                            {formatRecordId(student.id, 'student')}
+                                        </TableCell>
                                         <TableCell className="text-center font-medium">
                                             {student.nombre_completo}
                                         </TableCell>
@@ -388,30 +406,36 @@ function StudentsIndex({ students, drafts, filters, disabilityOptions, statusOpt
                 {students.last_page > 1 && (
                     <div className="flex items-center justify-between border-t px-5 py-3">
                         <p className="text-xs text-muted-foreground">
-                            Mostrando {students.data.length} de {students.total} registros
+                            Mostrando <span className="font-medium text-foreground">{students.data.length}</span> de{' '}
+                            <span className="font-medium text-foreground">{students.total}</span> registros
                         </p>
                         <div className="flex gap-1">
-                            {students.links.map((link, i) => (
-                                <Button
-                                    key={i}
-                                    variant={link.active ? 'default' : 'outline'}
-                                    size="sm"
-                                    className="h-8 min-w-8 text-xs"
-                                    disabled={!link.url}
-                                    asChild={!!link.url}
-                                >
-                                    {link.url ? (
-                                        <Link
-                                            href={link.url}
-                                            preserveState
-                                            preserveScroll
-                                            dangerouslySetInnerHTML={{ __html: link.label }}
-                                        />
-                                    ) : (
-                                        <span dangerouslySetInnerHTML={{ __html: link.label }} />
-                                    )}
-                                </Button>
-                            ))}
+                            {students.links.map((link, i) => {
+                                const label = link.label
+                                    .replace('&laquo;', '\u00AB')
+                                    .replace('&raquo;', '\u00BB')
+                                    .replace('Previous', 'Ant.')
+                                    .replace('Next', 'Sig.');
+
+                                return (
+                                    <Button
+                                        key={i}
+                                        variant={link.active ? 'default' : 'outline'}
+                                        size="sm"
+                                        className="h-8 min-w-8 text-xs"
+                                        disabled={!link.url}
+                                        asChild={!!link.url}
+                                    >
+                                        {link.url ? (
+                                            <Link href={link.url} preserveState preserveScroll>
+                                                {label}
+                                            </Link>
+                                        ) : (
+                                            <span>{label}</span>
+                                        )}
+                                    </Button>
+                                );
+                            })}
                         </div>
                     </div>
                 )}

@@ -95,7 +95,7 @@ class AttendanceController extends Controller
         $validated = $request->validate([
             'fecha' => ['required', 'date'],
             'records' => ['required', 'array', 'min:1'],
-            'records.*.student_id' => ['required', 'integer', Rule::exists('client.students', 'id')],
+            'records.*.student_id' => ['required', 'integer', Rule::exists(Student::class, 'id')],
             'records.*.estatus' => ['required', Rule::enum(AttendanceStatus::class)],
             'records.*.observaciones' => ['nullable', 'string', 'max:500'],
         ], [

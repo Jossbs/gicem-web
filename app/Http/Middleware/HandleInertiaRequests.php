@@ -39,8 +39,12 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            'flash' => [
+                'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error'),
+            ],
             'auth' => [
-                'user' => $request->user(),
+                'user' => $request->user()?->append('fotografia_display_url'),
                 'can' => $request->user() ? [
                     'students.create' => Gate::allows('students.create'),
                     'students.edit' => Gate::allows('students.edit'),

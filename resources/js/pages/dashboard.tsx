@@ -5,7 +5,7 @@ import { Separator } from '@/components/ui/separator';
 import AuthenticatedLayout from '@/layouts/authenticated-layout';
 import { type Auth, type Permissions } from '@/types/data/auth';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { ArrowRight, ClipboardList, GraduationCap, Heart, Megaphone, UsersRound } from 'lucide-react';
+import { ArrowRight, CalendarCheck, ClipboardList, GraduationCap, Heart, Megaphone, UsersRound } from 'lucide-react';
 import { type ReactNode, useMemo } from 'react';
 
 interface Module {
@@ -34,6 +34,15 @@ const allModules: Module[] = [
             'Apertura de grupos, vinculación de alumnos con grados específicos y control de capacidad del aula.',
         href: '/groups',
         requiredPermission: 'groups.access',
+    },
+    {
+        icon: CalendarCheck,
+        category: 'CONTROL DIARIO',
+        title: 'Asistencia',
+        description:
+            'Registro diario de asistencia por grupo con vista de presentes, faltas, retardos y justificaciones.',
+        href: '/attendance',
+        requiredPermission: 'attendance.access',
     },
     {
         icon: UsersRound,
@@ -106,7 +115,7 @@ function Dashboard() {
             </Card>
 
             {/* ── Module Cards ── */}
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {modules.map((mod) => (
                     <Card
                         key={mod.title}

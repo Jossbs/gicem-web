@@ -18,6 +18,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import AuthenticatedLayout from '@/layouts/authenticated-layout';
+import { formatRecordId } from '@/lib/format-record-id';
 import { type Auth } from '@/types/data/auth';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { ArrowLeft, Eye, FolderOpen, Info, Mail, Search } from 'lucide-react';
@@ -181,22 +182,19 @@ function GuardiansIndex({ guardians, filters, kinshipOptions }: Props) {
                         <TableHeader>
                             <TableRow className="bg-primary hover:bg-primary dark:bg-[oklch(0.28_0.06_9.01)] dark:hover:bg-[oklch(0.28_0.06_9.01)]">
                                 <TableHead className="text-center text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
-                                    NOMBRE(S)
+                                    ID
                                 </TableHead>
-                                <TableHead className="text-center text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
-                                    APELLIDOS
+                                <TableHead className="text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
+                                    TUTOR
                                 </TableHead>
                                 <TableHead className="text-center text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
                                     PARENTESCO
                                 </TableHead>
-                                <TableHead className="text-center text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
+                                <TableHead className="text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
                                     ALUMNO ASOCIADO
                                 </TableHead>
                                 <TableHead className="text-center text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
-                                    TELEFONO
-                                </TableHead>
-                                <TableHead className="text-center text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
-                                    CORREO
+                                    CONTACTO
                                 </TableHead>
                                 <TableHead className="text-center text-[11px] font-bold tracking-[0.1em] text-primary-foreground">
                                     CUENTA
@@ -209,7 +207,7 @@ function GuardiansIndex({ guardians, filters, kinshipOptions }: Props) {
                         <TableBody>
                             {guardians.data.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={8} className="py-16 text-center">
+                                    <TableCell colSpan={7} className="py-16 text-center">
                                         <div className="flex flex-col items-center gap-3">
                                             <div className="flex size-12 items-center justify-center rounded-full bg-muted">
                                                 <FolderOpen className="size-6 text-muted-foreground" />
@@ -230,25 +228,25 @@ function GuardiansIndex({ guardians, filters, kinshipOptions }: Props) {
                             ) : (
                                 guardians.data.map((g) => (
                                     <TableRow key={g.id}>
-                                        <TableCell className="text-center font-medium">
-                                            {g.tutor_nombre}
+                                        <TableCell className="text-center font-mono text-xs text-muted-foreground">
+                                            {formatRecordId(g.id, 'guardian')}
                                         </TableCell>
-                                        <TableCell className="text-center">
-                                            {g.tutor_apellido_paterno} {g.tutor_apellido_materno}
+                                        <TableCell>
+                                            <p className="text-sm font-medium">
+                                                {g.tutor_nombre} {g.tutor_apellido_paterno} {g.tutor_apellido_materno}
+                                            </p>
                                         </TableCell>
                                         <TableCell className="text-center">
                                             {kinshipLabels[g.tutor_parentesco] ?? g.tutor_parentesco}
                                         </TableCell>
+                                        <TableCell>
+                                            <p className="text-sm text-muted-foreground">
+                                                {g.nombre_completo} {g.apellido_paterno}
+                                            </p>
+                                        </TableCell>
                                         <TableCell className="text-center">
-                                            <span className="text-sm text-muted-foreground">
-                                                {g.nombre_completo} {g.apellido_paterno} {g.apellido_materno}
-                                            </span>
-                                        </TableCell>
-                                        <TableCell className="text-center whitespace-nowrap">
-                                            {g.tel_emergencia_1}
-                                        </TableCell>
-                                        <TableCell className="text-center text-muted-foreground">
-                                            {g.correo_tutor}
+                                            <p className="whitespace-nowrap text-sm">{g.tel_emergencia_1}</p>
+                                            <p className="text-xs text-muted-foreground">{g.correo_tutor}</p>
                                         </TableCell>
                                         <TableCell className="text-center">
                                             {g.tutor_user_id ? (

@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import AuthenticatedLayout from '@/layouts/authenticated-layout';
+import { formatRecordId } from '@/lib/format-record-id';
 import { type Auth } from '@/types/data/auth';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
@@ -22,6 +23,7 @@ import {
     ChevronDown,
     ChevronUp,
     ClipboardList,
+    Download,
     FileText,
     FolderOpen,
     Heart,
@@ -198,6 +200,12 @@ function StudentsShow({ student }: { student: Student }) {
                             <p className="mb-3 text-[11px] font-bold tracking-[0.1em] text-muted-foreground">ACCIONES</p>
                                 <div className="flex flex-col gap-2">
                                     <Button variant="outline" className="h-10 w-full gap-2 text-xs font-semibold tracking-[0.1em]" asChild>
+                                        <a href={`/students/${student.id}/export-pdf`}>
+                                            <Download className="size-3.5" />
+                                            DESCARGAR PDF
+                                        </a>
+                                    </Button>
+                                    <Button variant="outline" className="h-10 w-full gap-2 text-xs font-semibold tracking-[0.1em]" asChild>
                                         <Link href={`/students/${student.id}/log-entries`}>
                                             <BookOpen className="size-3.5" />
                                             BITACORA
@@ -265,7 +273,7 @@ function StudentsShow({ student }: { student: Student }) {
                                 </div>
                                 {/* Info */}
                                 <div className="flex min-w-0 flex-1 flex-col justify-center">
-                                    <p className="text-[10px] font-bold tracking-[0.15em] text-primary-foreground/60">EXPEDIENTE DE ALUMNO — GICEM</p>
+                                    <p className="text-[10px] font-bold tracking-[0.15em] text-primary-foreground/60">EXPEDIENTE DE ALUMNO — {formatRecordId(student.id, 'student')}</p>
                                     <h1 className="mt-1 text-2xl font-bold leading-tight text-primary-foreground">{fullName}</h1>
                                     <div className="mt-3 flex flex-wrap gap-2">
                                         {student.curp && (
@@ -437,13 +445,13 @@ function CollapsibleSection({ title, icon: Icon, defaultOpen = false, children }
             <button
                 type="button"
                 onClick={() => setOpen(!open)}
-                className="flex w-full items-center justify-between bg-primary/8 px-6 py-3 text-left transition-colors hover:bg-primary/12"
+                className="flex w-full items-center justify-between border-l-[3px] border-l-primary bg-card px-5 py-3 text-left transition-colors hover:bg-muted/50"
             >
-                <span className="flex items-center gap-2">
+                <span className="flex items-center gap-2.5">
                     <Icon className="size-4 text-primary" />
-                    <span className="text-[11px] font-bold tracking-[0.1em] text-primary">{title}</span>
+                    <span className="text-[11px] font-bold tracking-[0.12em] text-foreground">{title}</span>
                 </span>
-                {open ? <ChevronUp className="size-4 text-primary" /> : <ChevronDown className="size-4 text-primary" />}
+                {open ? <ChevronUp className="size-4 text-muted-foreground" /> : <ChevronDown className="size-4 text-muted-foreground" />}
             </button>
             {open && <CardContent className="px-6 py-4">{children}</CardContent>}
         </Card>
